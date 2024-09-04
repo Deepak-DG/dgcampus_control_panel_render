@@ -398,9 +398,7 @@ const Students: React.FC = () => {
   });
 
   return (
-    <div>
-      {students && hostels.length > 0 && <MaterialReactTable table={table} />}
-    </div>
+    <div>{students && hostels && <MaterialReactTable table={table} />}</div>
   );
 };
 

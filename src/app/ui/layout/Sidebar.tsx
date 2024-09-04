@@ -30,6 +30,20 @@ const Sidebar = () => {
         >
           Students
         </Link>
+        
+        <Link
+          href="/dashboard/otps"
+          className={getLinkClass("/dashboard/otps/")}
+        >
+          OTPs
+        </Link>
+        
+        <Link
+          href="/dashboard/student-auth-whatsapp-logs"
+          className={getLinkClass("/dashboard/student-auth-whatsapp-logs/")}
+        >
+          Student Auth Whatsapp Logs
+        </Link>
 
         <Link
           href="/dashboard/staffs"

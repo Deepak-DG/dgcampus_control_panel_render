@@ -1,7 +1,8 @@
 import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosError } from 'axios';
 
 const axiosInstance: AxiosInstance = axios.create({
-  baseURL: 'https://dgcampus-backend-render.onrender.com/api/',
+  // baseURL: 'https://dgcampus-backend-render.onrender.com/api/',
+  baseURL: 'http://127.0.0.1:8000/api/',
   timeout: 5000,
   headers: {
     'Content-Type': 'application/json',

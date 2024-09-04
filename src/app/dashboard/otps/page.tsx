@@ -22,15 +22,16 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import axiosInstance from "@/api/axiosInstance";
 import { formatDate } from "@/app/lib/DateUtils/dateUtils";
 
-export type College = {
+export type OTP = {
   id: number;
-  college_name: string;
+  user: number; // Assuming 'user' is a reference to a User ID
+  code: string;
   created_at: string;
+  is_verified: boolean;
 };
 
-const Colleges: React.FC = () => {
-  const [colleges, setColleges] = useState<College[]>([]);
-  const [test, setTest] = useState<any>(null);
+const ManageOTPs: React.FC = () => {
+  const [otps, setOTPs] = useState<OTP[]>([]);
   const [isError, setIsError] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isRefetching, setIsRefetching] = useState<boolean>(false);
@@ -44,7 +45,7 @@ const Colleges: React.FC = () => {
   });
 
   useEffect(() => {
-    getColleges();
+    getOTPs();
   }, [columnFilters, pagination.pageIndex, pagination.pageSize, sorting]);
 
   // Helper function to build query string from filters
@@ -63,8 +64,8 @@ const Colleges: React.FC = () => {
     return desc ? `-${id}` : id;
   };
 
-  const getColleges = async () => {
-    if (!colleges.length) {
+  const getOTPs = async () => {
+    if (!otps.length) {
       setIsLoading(true);
     } else {
       setIsRefetching(true);
@@ -86,9 +87,9 @@ const Colleges: React.FC = () => {
     const query = queryParams.toString();
 
     await axiosInstance
-      .get(`colleges?${query}`)
+      .get(`otps?${query}`)
       .then((response) => {
-        setColleges(response.data.results);
+        setOTPs(response.data.results);
         setRowCount(response.data.count);
         setIsError(false);
       })
@@ -101,83 +102,96 @@ const Colleges: React.FC = () => {
     setPagination((prev) => ({ ...prev, pageIndex: 0 }));
   }, [columnFilters]);
 
-  const handleCreateCollege = async ({
+  const handleCreateOTP = async ({
     values,
     table,
   }: {
-    values: College;
-    table: MRT_TableInstance<College>;
+    values: OTP;
+    table: MRT_TableInstance<OTP>;
   }) => {
     axiosInstance
-      .post(`colleges/`, {
-        college_name: values.college_name,
+      .post(`otps/`, {
+        user: values.user,
+        code: values.code,
+        is_verified: values.is_verified,
       })
       .then((response) => {
-        getColleges();
+        getOTPs();
       })
       .catch((error) => console.error(error));
 
     table.setCreatingRow(null);
   };
 
-  const handleEditCollege = async ({
+  const handleEditOTP = async ({
     values,
     table,
   }: {
-    values: College;
-    table: MRT_TableInstance<College>;
+    values: OTP;
+    table: MRT_TableInstance<OTP>;
   }) => {
-    setTest(values);
-
     axiosInstance
-      .patch(`colleges/${values.id}/`, {
-        college_name: values.college_name,
+      .patch(`otps/${values.id}/`, {
+        user: values.user,
+        code: values.code,
+        is_verified: values.is_verified,
       })
       .then((response) => {
-        getColleges();
+        getOTPs();
       })
       .catch((error) => console.error(error));
     table.setEditingRow(null);
   };
 
-  const columns = useMemo<MRT_ColumnDef<College>[]>(
+  const columns = useMemo<MRT_ColumnDef<OTP>[]>(
     () => [
       {
-        accessorKey: "id", //access nested data with dot notation
+        accessorKey: "id",
         header: "ID",
         enableEditing: false,
         size: 150,
       },
       {
-        accessorKey: "college_name",
-        header: "College Name",
+        accessorKey: "user",
+        header: "User",
         size: 150,
       },
       {
-        accessorKey: "created_at", //normal accessorKey
+        accessorKey: "code",
+        header: "Code",
+        size: 150,
+      },
+      {
+        accessorKey: "created_at",
         header: "Created At",
         enableEditing: false,
         size: 200,
         Cell: ({ cell }) => <Box>{formatDate(cell.getValue() as string)}</Box>,
       },
+      {
+        accessorKey: "is_verified",
+        header: "Is Verified",
+        size: 150,
+        Cell: ({ cell }) => <Box>{JSON.stringify(cell.getValue())}</Box>,
+      },
     ],
     []
   );
 
-  //DELETE action
-  const openDeleteConfirmModal = (row: College) => {
-    if (window.confirm("Are you sure you want to delete this college?")) {
+  // DELETE action
+  const openDeleteConfirmModal = (row: OTP) => {
+    if (window.confirm("Are you sure you want to delete this OTP?")) {
       axiosInstance
-        .delete(`colleges/${row.id}/`)
+        .delete(`otps/${row.id}/`)
         .then((response) => {
-          getColleges();
+          getOTPs();
         })
         .catch((error) => console.error(error));
     }
   };
 
   const table = useMaterialReactTable({
-    data: colleges,
+    data: otps,
     columns,
     manualFiltering: true,
     manualPagination: true,
@@ -203,15 +217,15 @@ const Colleges: React.FC = () => {
     enableRowSelection: true,
     columnFilterDisplayMode: "popover",
     paginationDisplayMode: "pages",
-
+    
     createDisplayMode: "modal",
-    onCreatingRowSave: handleCreateCollege,
+    onCreatingRowSave: handleCreateOTP,
     enableEditing: true,
-    onEditingRowSave: handleEditCollege,
-    //optionally customize modal content
+    onEditingRowSave: handleEditOTP,
+    // optionally customize modal content
     renderCreateRowDialogContent: ({ table, row, internalEditComponents }) => (
       <>
-        <DialogTitle variant="h3">Create New College</DialogTitle>
+        <DialogTitle variant="h3">Create New OTP</DialogTitle>
         <DialogContent
           sx={{ display: "flex", flexDirection: "column", gap: "1rem" }}
         >
@@ -222,10 +236,10 @@ const Colleges: React.FC = () => {
         </DialogActions>
       </>
     ),
-    //optionally customize modal content
+    // optionally customize modal content
     renderEditRowDialogContent: ({ table, row, internalEditComponents }) => (
       <>
-        <DialogTitle variant="h3">Edit College</DialogTitle>
+        <DialogTitle variant="h3">Edit OTP</DialogTitle>
         <DialogContent
           sx={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}
         >
@@ -255,12 +269,16 @@ const Colleges: React.FC = () => {
     ),
     renderTopToolbarCustomActions: ({ table }) => (
       <Button variant="contained" onClick={() => table.setCreatingRow(true)}>
-        Create New College
+        Create New OTP
       </Button>
     ),
   });
 
-  return <div>{colleges && <MaterialReactTable table={table} />}</div>;
+  return (
+    <div>
+      {otps.length >= 0 && <MaterialReactTable table={table} />}
+    </div>
+  );
 };
 
-export default Colleges;
+export default ManageOTPs;

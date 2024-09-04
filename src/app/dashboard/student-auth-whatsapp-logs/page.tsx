@@ -22,15 +22,17 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import axiosInstance from "@/api/axiosInstance";
 import { formatDate } from "@/app/lib/DateUtils/dateUtils";
 
-export type College = {
+export type StudentAuthWhatsAppLog = {
   id: number;
-  college_name: string;
-  created_at: string;
+  recipient_number: string;
+  message: string;
+  status_code: number;
+  response_text: string;
+  sent_at: string;
 };
 
-const Colleges: React.FC = () => {
-  const [colleges, setColleges] = useState<College[]>([]);
-  const [test, setTest] = useState<any>(null);
+const ManageStudentAuthWhatsAppLogs: React.FC = () => {
+  const [logs, setLogs] = useState<StudentAuthWhatsAppLog[]>([]);
   const [isError, setIsError] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isRefetching, setIsRefetching] = useState<boolean>(false);
@@ -44,7 +46,7 @@ const Colleges: React.FC = () => {
   });
 
   useEffect(() => {
-    getColleges();
+    getLogs();
   }, [columnFilters, pagination.pageIndex, pagination.pageSize, sorting]);
 
   // Helper function to build query string from filters
@@ -63,8 +65,8 @@ const Colleges: React.FC = () => {
     return desc ? `-${id}` : id;
   };
 
-  const getColleges = async () => {
-    if (!colleges.length) {
+  const getLogs = async () => {
+    if (!logs.length) {
       setIsLoading(true);
     } else {
       setIsRefetching(true);
@@ -86,9 +88,9 @@ const Colleges: React.FC = () => {
     const query = queryParams.toString();
 
     await axiosInstance
-      .get(`colleges?${query}`)
+      .get(`student-auth-whatsapp-logs?${query}`)
       .then((response) => {
-        setColleges(response.data.results);
+        setLogs(response.data.results);
         setRowCount(response.data.count);
         setIsError(false);
       })
@@ -101,61 +103,82 @@ const Colleges: React.FC = () => {
     setPagination((prev) => ({ ...prev, pageIndex: 0 }));
   }, [columnFilters]);
 
-  const handleCreateCollege = async ({
+  const handleCreateLog = async ({
     values,
     table,
   }: {
-    values: College;
-    table: MRT_TableInstance<College>;
+    values: StudentAuthWhatsAppLog;
+    table: MRT_TableInstance<StudentAuthWhatsAppLog>;
   }) => {
     axiosInstance
-      .post(`colleges/`, {
-        college_name: values.college_name,
+      .post(`student-auth-whatsapp-logs/`, {
+        recipient_number: values.recipient_number,
+        message: values.message,
+        status_code: values.status_code,
+        response_text: values.response_text,
+        sent_at: values.sent_at,
       })
       .then((response) => {
-        getColleges();
+        getLogs();
       })
       .catch((error) => console.error(error));
 
     table.setCreatingRow(null);
   };
 
-  const handleEditCollege = async ({
+  const handleEditLog = async ({
     values,
     table,
   }: {
-    values: College;
-    table: MRT_TableInstance<College>;
+    values: StudentAuthWhatsAppLog;
+    table: MRT_TableInstance<StudentAuthWhatsAppLog>;
   }) => {
-    setTest(values);
-
     axiosInstance
-      .patch(`colleges/${values.id}/`, {
-        college_name: values.college_name,
+      .patch(`student-auth-whatsapp-logs/${values.id}/`, {
+        recipient_number: values.recipient_number,
+        message: values.message,
+        status_code: values.status_code,
+        response_text: values.response_text,
+        sent_at: values.sent_at,
       })
       .then((response) => {
-        getColleges();
+        getLogs();
       })
       .catch((error) => console.error(error));
     table.setEditingRow(null);
   };
 
-  const columns = useMemo<MRT_ColumnDef<College>[]>(
+  const columns = useMemo<MRT_ColumnDef<StudentAuthWhatsAppLog>[]>(
     () => [
       {
-        accessorKey: "id", //access nested data with dot notation
+        accessorKey: "id",
         header: "ID",
         enableEditing: false,
         size: 150,
       },
       {
-        accessorKey: "college_name",
-        header: "College Name",
+        accessorKey: "recipient_number",
+        header: "Recipient Number",
         size: 150,
       },
       {
-        accessorKey: "created_at", //normal accessorKey
-        header: "Created At",
+        accessorKey: "message",
+        header: "Message",
+        size: 150,
+      },
+      {
+        accessorKey: "status_code",
+        header: "Status Code",
+        size: 150,
+      },
+      {
+        accessorKey: "response_text",
+        header: "Response Text",
+        size: 150,
+      },
+      {
+        accessorKey: "sent_at",
+        header: "Sent At",
         enableEditing: false,
         size: 200,
         Cell: ({ cell }) => <Box>{formatDate(cell.getValue() as string)}</Box>,
@@ -164,20 +187,20 @@ const Colleges: React.FC = () => {
     []
   );
 
-  //DELETE action
-  const openDeleteConfirmModal = (row: College) => {
-    if (window.confirm("Are you sure you want to delete this college?")) {
+  // DELETE action
+  const openDeleteConfirmModal = (row: StudentAuthWhatsAppLog) => {
+    if (window.confirm("Are you sure you want to delete this log?")) {
       axiosInstance
-        .delete(`colleges/${row.id}/`)
+        .delete(`student-auth-whatsapp-logs/${row.id}/`)
         .then((response) => {
-          getColleges();
+          getLogs();
         })
         .catch((error) => console.error(error));
     }
   };
 
   const table = useMaterialReactTable({
-    data: colleges,
+    data: logs,
     columns,
     manualFiltering: true,
     manualPagination: true,
@@ -203,15 +226,15 @@ const Colleges: React.FC = () => {
     enableRowSelection: true,
     columnFilterDisplayMode: "popover",
     paginationDisplayMode: "pages",
-
+    
     createDisplayMode: "modal",
-    onCreatingRowSave: handleCreateCollege,
+    onCreatingRowSave: handleCreateLog,
     enableEditing: true,
-    onEditingRowSave: handleEditCollege,
-    //optionally customize modal content
+    onEditingRowSave: handleEditLog,
+    // optionally customize modal content
     renderCreateRowDialogContent: ({ table, row, internalEditComponents }) => (
       <>
-        <DialogTitle variant="h3">Create New College</DialogTitle>
+        <DialogTitle variant="h3">Create New Log</DialogTitle>
         <DialogContent
           sx={{ display: "flex", flexDirection: "column", gap: "1rem" }}
         >
@@ -222,10 +245,10 @@ const Colleges: React.FC = () => {
         </DialogActions>
       </>
     ),
-    //optionally customize modal content
+    // optionally customize modal content
     renderEditRowDialogContent: ({ table, row, internalEditComponents }) => (
       <>
-        <DialogTitle variant="h3">Edit College</DialogTitle>
+        <DialogTitle variant="h3">Edit Log</DialogTitle>
         <DialogContent
           sx={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}
         >
@@ -255,12 +278,16 @@ const Colleges: React.FC = () => {
     ),
     renderTopToolbarCustomActions: ({ table }) => (
       <Button variant="contained" onClick={() => table.setCreatingRow(true)}>
-        Create New College
+        Create New Log
       </Button>
     ),
   });
 
-  return <div>{colleges && <MaterialReactTable table={table} />}</div>;
+  return (
+    <div>
+      {logs.length >= 0 && <MaterialReactTable table={table} />}
+    </div>
+  );
 };
 
-export default Colleges;
+export default ManageStudentAuthWhatsAppLogs;

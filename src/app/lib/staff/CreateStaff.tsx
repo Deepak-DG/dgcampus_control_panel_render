@@ -56,6 +56,7 @@ const CreateStaff: React.FC<CreateStaffProps> = ({ getStaff }) => {
 
   const handleCreateStaff = async () => {
     try {
+      console.log(newStaffData);
       // Backend expects roles to be sent as an array, and the staff data in a list
       await axiosInstance.post(`bulk-add-staff/`, [newStaffData]);
       setNewStaffData({

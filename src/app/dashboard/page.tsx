@@ -57,7 +57,7 @@ const Dashboard = () => {
   const fetchAndDownloadData = async () => {
     try {
       const response = await axiosInstance.get(
-        "https://campus.dhobig.com/api/students-count-room-hostel/"
+        "students-count-room-hostel/"
       );
       const data = response.data;
 

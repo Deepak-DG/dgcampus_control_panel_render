@@ -133,8 +133,9 @@ const CreateStaff: React.FC<CreateStaffProps> = ({ getStaff }) => {
               renderTags={(value: string[], getTagProps) =>
                 value.map((option: string, index: number) => (
                   <Chip
+                    key={option}
+                    // {...getTagProps({ index })}
                     label={option}
-                    {...getTagProps({ index })} // 'key' will be provided by getTagProps
                     color="primary"
                   />
                 ))

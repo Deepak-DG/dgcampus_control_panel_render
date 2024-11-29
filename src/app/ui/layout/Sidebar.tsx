@@ -82,6 +82,12 @@ const Sidebar = () => {
           Slots
         </Link>
         <Link
+          href="/dashboard/hostel-order-limit/"
+          className={getLinkClass("/dashboard/hostel-order-limit/")}
+        >
+          Hostel Order Limit
+        </Link>
+        <Link
           href="/dashboard/orders"
           className={getLinkClass("/dashboard/orders/")}
         >

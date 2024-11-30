@@ -95,6 +95,12 @@ const Sidebar = () => {
         </Link>
 
         <Link
+          href="/dashboard/order-ratings"
+          className={getLinkClass("/dashboard/order-ratings/")}
+        >
+          Orders Ratings
+        </Link>
+        <Link
           href="/dashboard/whatsapp-message-logs"
           className={getLinkClass("/dashboard/whatsapp-message-logs/")}
         >

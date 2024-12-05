@@ -83,6 +83,13 @@ const Sidebar = () => {
         <Link href="/pack/payment" className={getLinkClass("/pack/payment/")}>
           Payment
         </Link>
+
+        <Link
+          href="/pack/phonepe-transactions"
+          className={getLinkClass("/pack/phonepe-transactions/")}
+        >
+          Phonepe Transactions
+        </Link>
       </nav>
 
       <Link href="/dashboard/" className={getLinkClass("/dashboard/")}>

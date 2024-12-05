@@ -28,7 +28,7 @@ export type ConfirmSubscription = {
   duration_months: number;
   pickups_per_month: number;
   price: number;
-  is_payment_started: boolean;
+  merchant_transaction_id: string;
   created_at: string;
 };
 
@@ -122,7 +122,7 @@ const ConfirmSubscriptions: React.FC = () => {
         duration_months: values.duration_months,
         pickups_per_month: values.pickups_per_month,
         price: values.price,
-        is_payment_started: values.is_payment_started,
+        merchant_transaction_id: values.merchant_transaction_id,
       })
       .then((response) => {
         getSubscriptions();
@@ -146,7 +146,7 @@ const ConfirmSubscriptions: React.FC = () => {
         duration_months: values.duration_months,
         pickups_per_month: values.pickups_per_month,
         price: values.price,
-        is_payment_started: values.is_payment_started,
+        merchant_transaction_id: values.merchant_transaction_id,
       })
       .then((response) => {
         getSubscriptions();
@@ -189,8 +189,8 @@ const ConfirmSubscriptions: React.FC = () => {
         size: 150,
       },
       {
-        accessorKey: "is_payment_started",
-        header: "Payment Started",
+        accessorKey: "merchant_transaction_id",
+        header: "Merchant Transaction ID",
         size: 150,
       },
       {

@@ -24,6 +24,7 @@ import { formatDate } from "@/app/lib/DateUtils/dateUtils";
 
 export type Order = {
   id: number;
+  pickup_date: string;
   slot: string;
   room: string;
   student: string;
@@ -188,7 +189,7 @@ const ManageOrders: React.FC = () => {
         accessorKey: "id", //access nested data with dot notation
         header: "ID",
         enableEditing: false,
-        size: 150,
+        size: 100,
       },
       {
         accessorKey: "order_status",
@@ -213,6 +214,12 @@ const ManageOrders: React.FC = () => {
             .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
             .join(" ");
         },
+      },
+      {
+        accessorKey: "pickup_date",
+        header: "Pickup Date",
+        enableEditing: false,
+        size: 150,
       },
       {
         accessorKey: "slot_date",

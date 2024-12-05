@@ -20,20 +20,17 @@ import {
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import axiosInstance from "@/api/axiosInstance";
+import { formatDate } from "@/app/lib/DateUtils/dateUtils";
 
-export type Payment = {
+export type Holiday = {
   id: number;
-  subscription: string;
-  user: string;
-  phonepe_order_id: string;
-  merchant_transaction_id: string;
-  payment_status: string;
-  amount: number;
+  date: string;
+  reason: string;
   created_at: string;
 };
 
-const Payments: React.FC = () => {
-  const [payments, setPayments] = useState<Payment[]>([]);
+const ManageHolidays: React.FC = () => {
+  const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [isError, setIsError] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isRefetching, setIsRefetching] = useState<boolean>(false);
@@ -47,10 +44,9 @@ const Payments: React.FC = () => {
   });
 
   useEffect(() => {
-    getPayments();
+    getHolidays();
   }, [columnFilters, pagination.pageIndex, pagination.pageSize, sorting]);
 
-  // Helper function to build query string from filters
   const buildFiltersString = (filters: any[]) => {
     const params = new URLSearchParams();
     filters.forEach((filter) => {
@@ -59,15 +55,14 @@ const Payments: React.FC = () => {
     return params.toString();
   };
 
-  // Helper function to build sorting string
   const buildSortingString = (sorting: any[]) => {
     if (sorting.length === 0) return "";
     const { id, desc } = sorting[0];
     return desc ? `-${id}` : id;
   };
 
-  const getPayments = async () => {
-    if (!payments.length) {
+  const getHolidays = async () => {
+    if (!holidays.length) {
       setIsLoading(true);
     } else {
       setIsRefetching(true);
@@ -89,17 +84,13 @@ const Payments: React.FC = () => {
     const query = queryParams.toString();
 
     await axiosInstance
-      .get(`pack/payment?${query}`)
+      .get(`holidays?${query}`)
       .then((response) => {
-        console.log(response.data);
-        setPayments(response.data.results);
+        setHolidays(response.data.results);
         setRowCount(response.data.count);
         setIsError(false);
       })
-      .catch((error) => {
-        console.log(error);
-        setIsError(true);
-      });
+      .catch(() => setIsError(true));
     setIsLoading(false);
     setIsRefetching(false);
   };
@@ -108,115 +99,91 @@ const Payments: React.FC = () => {
     setPagination((prev) => ({ ...prev, pageIndex: 0 }));
   }, [columnFilters]);
 
-  const handleCreatePayment = async ({
+  const handleCreateHoliday = async ({
     values,
     table,
   }: {
-    values: Payment;
-    table: MRT_TableInstance<Payment>;
+    values: Holiday;
+    table: MRT_TableInstance<Holiday>;
   }) => {
     axiosInstance
-      .post(`pack/payment/`, {
-        subscription: values.subscription,
-        user: values.user,
-        phonepe_order_id: values.phonepe_order_id,
-        merchant_transaction_id: values.merchant_transaction_id,
-        payment_status: values.payment_status,
-        amount: values.amount,
+      .post(`holidays/`, {
+        date: values.date,
+        reason: values.reason,
       })
-      .then((response) => {
-        getPayments();
+      .then(() => {
+        getHolidays();
       })
       .catch((error) => console.error(error));
 
     table.setCreatingRow(null);
   };
 
-  const handleEditPayment = async ({
+  const handleEditHoliday = async ({
     values,
     table,
   }: {
-    values: Payment;
-    table: MRT_TableInstance<Payment>;
+    values: Holiday;
+    table: MRT_TableInstance<Holiday>;
   }) => {
     axiosInstance
-      .patch(`pack/payment/${values.id}/`, {
-        subscription: values.subscription,
-        user: values.user,
-        phonepe_order_id: values.phonepe_order_id,
-        merchant_transaction_id: values.merchant_transaction_id,
-        payment_status: values.payment_status,
-        amount: values.amount,
+      .patch(`holidays/${values.id}/`, {
+        date: values.date,
+        reason: values.reason,
       })
-      .then((response) => {
-        getPayments();
+      .then(() => {
+        getHolidays();
       })
       .catch((error) => console.error(error));
     table.setEditingRow(null);
   };
 
-  const columns = useMemo<MRT_ColumnDef<Payment>[]>(
+  const columns = useMemo<MRT_ColumnDef<Holiday>[]>(
     () => [
       {
         accessorKey: "id",
         header: "ID",
         enableEditing: false,
+        size: 100,
+      },
+      {
+        accessorKey: "date",
+        header: "Date",
         size: 150,
+        Cell: ({ cell }) => <Box>{formatDate(cell.getValue() as string, false)}</Box>,
       },
       {
-        accessorKey: "subscription",
-        header: "Subscription",
-        size: 150,
+        accessorKey: "reason",
+        header: "Reason",
+        size: 100,
       },
+
       {
-        accessorKey: "user",
-        header: "User",
-        size: 150,
-      },
-      {
-        accessorKey: "phonepe_order_id",
-        header: "Phonepe Order ID",
-        size: 200,
-      },
-      {
-        accessorKey: "merchant_transaction_id",
-        header: "Merchant Transaction ID",
-        size: 200,
-      },
-      {
-        accessorKey: "payment_status",
-        header: "Payment Status",
-        size: 200,
-      },
-      {
-        accessorKey: "amount",
-        header: "Amount",
-        size: 150,
-      },
-      {
-        accessorKey: "created_at",
+        accessorKey: "created_at", //normal accessorKey
         header: "Created At",
         enableEditing: false,
         size: 200,
+        Cell: ({ cell }) => (
+          <Box>{formatDate(cell.getValue() as string)}</Box>
+        ),
       },
     ],
     []
   );
 
-  //DELETE action
-  const openDeleteConfirmModal = (row: Payment) => {
-    if (window.confirm("Are you sure you want to delete this payment?")) {
+  const openDeleteConfirmModal = (row: Holiday) => {
+    if (window.confirm("Are you sure you want to delete this holiday?")) {
       axiosInstance
-        .delete(`pack/payment/${row.id}/`)
-        .then((response) => {
-          getPayments();
+        .delete(`holidays/${row.id}/`)
+        .then(() => {
+          getHolidays();
         })
         .catch((error) => console.error(error));
     }
   };
 
   const table = useMaterialReactTable({
-    data: payments,
+    data: holidays,
     columns,
     manualFiltering: true,
     manualPagination: true,
@@ -245,13 +212,12 @@ const Payments: React.FC = () => {
     positionToolbarAlertBanner: "bottom",
 
     createDisplayMode: "modal",
-    onCreatingRowSave: handleCreatePayment,
+    onCreatingRowSave: handleCreateHoliday,
     enableEditing: true,
-    onEditingRowSave: handleEditPayment,
-    //optionally customize modal content
+    onEditingRowSave: handleEditHoliday,
     renderCreateRowDialogContent: ({ table, row, internalEditComponents }) => (
       <>
-        <DialogTitle variant="h3">Create New Payment</DialogTitle>
+        <DialogTitle variant="h3">Create New Holiday</DialogTitle>
         <DialogContent
           sx={{ display: "flex", flexDirection: "column", gap: "1rem" }}
         >
@@ -262,10 +228,9 @@ const Payments: React.FC = () => {
         </DialogActions>
       </>
     ),
-    //optionally customize modal content
     renderEditRowDialogContent: ({ table, row, internalEditComponents }) => (
       <>
-        <DialogTitle variant="h3">Edit Payment</DialogTitle>
+        <DialogTitle variant="h3">Edit Holiday</DialogTitle>
         <DialogContent
           sx={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}
         >
@@ -295,14 +260,16 @@ const Payments: React.FC = () => {
     ),
     renderTopToolbarCustomActions: ({ table }) => (
       <Button variant="contained" onClick={() => table.setCreatingRow(true)}>
-        Create New Payment
+        Create New Holiday
       </Button>
     ),
   });
 
   return (
-    <div>{payments.length >= 0 && <MaterialReactTable table={table} />}</div>
-);
+    <div>
+      {holidays.length >= 0 && <MaterialReactTable table={table} />}
+    </div>
+  );
 };
 
-export default Payments;
+export default ManageHolidays;

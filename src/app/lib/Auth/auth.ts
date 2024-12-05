@@ -1,11 +1,12 @@
 import axios from "axios";
 import { useRouter } from "next/navigation";
 
-const API_BASE_URL = "https://web-production-4f4e6.up.railway.app/api";
+const API_BASE_URL = "https://web-production-8423.up.railway.app/api/";
+
 
 export const loginSuperUser = async (mobile: string, password: string) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/superuser/login/`, {
+    const response = await axios.post(`${API_BASE_URL}superuser/login/`, {
       mobile_number: mobile,
       password,
     });

@@ -2,6 +2,16 @@
 
 import axiosInstance from "@/api/axiosInstance";
 import { useEffect, useState } from "react";
+import { Bar } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
 
 type StaffPerformanceData = {
   name: string;
@@ -12,6 +22,15 @@ type StaffPerformanceData = {
   total_clothes_ironed?: number;
   unique_days: number;
 };
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 const StaffPerformance = () => {
   const [staffPerformance, setStaffPerformance] = useState<
@@ -71,12 +90,43 @@ const StaffPerformance = () => {
     (staff) => staff.role === "Ironing"
   );
 
+  const generateChartData = (
+    staff: StaffPerformanceData[],
+    clothesType: string
+  ) => {
+    return {
+      labels: staff.map((staff) => staff.name),
+      datasets: [
+        {
+          label: `Orders Processed`,
+          data: staff.map((staff) => staff.orders_processed),
+          backgroundColor: "rgba(75, 192, 192, 0.6)",
+          borderColor: "rgba(75, 192, 192, 1)",
+          borderWidth: 1,
+        },
+        {
+          label: `Total Clothes ${clothesType}`,
+          data: staff.map((staff) =>
+            clothesType === "Washed"
+              ? staff.total_clothes_washed ?? 0
+              : clothesType === "Folded"
+              ? staff.total_clothes_folded ?? 0
+              : staff.total_clothes_ironed ?? 0
+          ),
+          backgroundColor: "rgba(153, 102, 255, 0.6)",
+          borderColor: "rgba(153, 102, 255, 1)",
+          borderWidth: 1,
+        },
+      ],
+    };
+  };
+
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4 text-violet-200">Staff Performance</h1>
+      <h1 className="text-2xl font-bold mb-4">Staff Performance</h1>
 
       <div className="mb-4">
-        <label className="mr-2 text-violet-200">Start Date:</label>
+        <label className="mr-2">Start Date:</label>
         <input
           type="date"
           value={startDate}
@@ -84,7 +134,7 @@ const StaffPerformance = () => {
           className="mr-4 p-2 border rounded"
         />
 
-        <label className="mr-2 text-violet-200">End Date:</label>
+        <label className="mr-2 ">End Date:</label>
         <input
           type="date"
           value={endDate}
@@ -97,7 +147,7 @@ const StaffPerformance = () => {
       {washingStaff.length > 0 && (
         <div className="mb-6">
           <h2 className="text-xl font-semibold mb-2">Washing Staff</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 dark:text-black">
             {washingStaff.map((staff) => (
               <div
                 key={staff.name}
@@ -123,7 +173,7 @@ const StaffPerformance = () => {
       {foldingStaff.length > 0 && (
         <div className="mb-6">
           <h2 className="text-xl font-semibold mb-2">Folding Staff</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 dark:text-black">
             {foldingStaff.map((staff) => (
               <div
                 key={staff.name}
@@ -149,7 +199,7 @@ const StaffPerformance = () => {
       {ironingStaff.length > 0 && (
         <div>
           <h2 className="text-xl font-semibold mb-2">Ironing Staff</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 dark:text-black">
             {ironingStaff.map((staff) => (
               <div
                 key={staff.name}
@@ -168,6 +218,30 @@ const StaffPerformance = () => {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Washing Section */}
+      {washingStaff.length > 0 && (
+        <div className="my-6">
+          <h2 className="text-xl font-semibold mb-2">Washing Staff</h2>
+          <Bar data={generateChartData(washingStaff, "Washed")} />
+        </div>
+      )}
+
+      {/* Folding Section */}
+      {foldingStaff.length > 0 && (
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold mb-2">Folding Staff</h2>
+          <Bar data={generateChartData(foldingStaff, "Folded")} />
+        </div>
+      )}
+
+      {/* Ironing Section */}
+      {ironingStaff.length > 0 && (
+        <div>
+          <h2 className="text-xl font-semibold mb-2">Ironing Staff</h2>
+          <Bar data={generateChartData(ironingStaff, "Ironed")} />
         </div>
       )}
     </div>

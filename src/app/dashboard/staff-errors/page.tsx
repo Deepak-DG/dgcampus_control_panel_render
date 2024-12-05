@@ -2,39 +2,34 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import {
-  MRT_EditActionButtons,
   MaterialReactTable,
   useMaterialReactTable,
   type MRT_ColumnDef,
-  type MRT_TableInstance,
 } from "material-react-table";
-import {
-  Box,
-  Button,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  IconButton,
-  Tooltip,
-} from "@mui/material";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
+import { Box, IconButton, Tooltip } from "@mui/material";
 import axiosInstance from "@/api/axiosInstance";
 import { formatDate } from "@/app/lib/DateUtils/dateUtils";
-import CreateHostelOrderLimit from "@/app/lib/hostel-order-limit/CreateHostelOrderLimit";
+import DeleteIcon from "@mui/icons-material/Delete";
 
-export type HostelOrderLimit = {
+export type StaffError = {
   id: number;
-  hostel_name: string;
-  college_name: string;
-  date: string;
-  max_orders: number;
-  current_order_count: number;
+  staff: string;
+  order: string | null;
+  staff_current_role: string | null;
+  box_id: string | null;
+  order_status: string | null;
+  number_of_clothes: number | null;
+  number_of_clothes_folded: number | null;
+  number_of_clothes_ironed: number | null;
+  error_code: string;
+  resolve_status: string;
+  resolved_by: string | null;
   created_at: string;
+  updated_at: string;
 };
 
-const ManageHostelOrderLimits: React.FC = () => {
-  const [orderLimits, setOrderLimits] = useState<HostelOrderLimit[]>([]);
+const ManageStaffErrors: React.FC = () => {
+  const [staffErrors, setStaffErrors] = useState<StaffError[]>([]);
   const [isError, setIsError] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isRefetching, setIsRefetching] = useState<boolean>(false);
@@ -48,7 +43,7 @@ const ManageHostelOrderLimits: React.FC = () => {
   });
 
   useEffect(() => {
-    getOrderLimits();
+    getStaffErrors();
   }, [columnFilters, pagination.pageIndex, pagination.pageSize, sorting]);
 
   const buildFiltersString = (filters: any[]) => {
@@ -65,8 +60,8 @@ const ManageHostelOrderLimits: React.FC = () => {
     return desc ? `-${id}` : id;
   };
 
-  const getOrderLimits = async () => {
-    if (!orderLimits.length) {
+  const getStaffErrors = async () => {
+    if (!staffErrors.length) {
       setIsLoading(true);
     } else {
       setIsRefetching(true);
@@ -88,10 +83,9 @@ const ManageHostelOrderLimits: React.FC = () => {
     const query = queryParams.toString();
 
     await axiosInstance
-      .get(`hostel-order-limits?${query}`)
+      .get(`staff-errors?${query}`)
       .then((response) => {
-        console.log(response);
-        setOrderLimits(response.data.results);
+        setStaffErrors(response.data.results);
         setRowCount(response.data.count);
         setIsError(false);
       })
@@ -104,86 +98,93 @@ const ManageHostelOrderLimits: React.FC = () => {
     setPagination((prev) => ({ ...prev, pageIndex: 0 }));
   }, [columnFilters]);
 
-  const handleEditOrderLimit = async ({
-    values,
-    table,
-  }: {
-    values: HostelOrderLimit;
-    table: MRT_TableInstance<HostelOrderLimit>;
-  }) => {
-    axiosInstance
-      .patch(`hostel-order-limits/${values.id}/`, {
-        hostel_name: values.hostel_name,
-        college_name: values.college_name,
-        date: values.date,
-        max_orders: values.max_orders,
-        current_order_count: values.current_order_count,
-      })
-      .then(() => {
-        getOrderLimits();
-      })
-      .catch((error) => console.error(error));
-    table.setEditingRow(null);
-  };
-
-  const columns = useMemo<MRT_ColumnDef<HostelOrderLimit>[]>(
+  const columns = useMemo<MRT_ColumnDef<StaffError>[]>(
     () => [
       {
-        accessorKey: "id",
+        accessorKey: "id", //access nested data with dot notation
         header: "ID",
         enableEditing: false,
+        size: 100,
+      },
+      {
+        accessorKey: "staff",
+        header: "Staff",
         size: 150,
       },
       {
-        accessorKey: "hostel_name",
-        header: "Hostel Name",
-        size: 200,
-      },
-      {
-        accessorKey: "college_name",
-        header: "College Name",
-        size: 200,
-      },
-      {
-        accessorKey: "date",
-        header: "Date",
-        size: 200,
-      },
-      {
-        accessorKey: "max_orders",
-        header: "Max Orders",
+        accessorKey: "order",
+        header: "Order",
         size: 150,
       },
       {
-        accessorKey: "current_order_count",
-        header: "Current Order Count",
+        accessorKey: "staff_current_role",
+        header: "Current Role",
         size: 150,
       },
-
       {
-        accessorKey: "created_at", // New column
+        accessorKey: "box_id",
+        header: "Box ID",
+        size: 150,
+      },
+      {
+        accessorKey: "order_status",
+        header: "Order Status",
+        size: 150,
+      },
+      {
+        accessorKey: "number_of_clothes",
+        header: "No. of Clothes",
+        size: 150,
+      },
+      {
+        accessorKey: "number_of_clothes_folded",
+        header: "No. of Clothes Folded",
+        size: 150,
+      },
+      {
+        accessorKey: "number_of_clothes_ironed",
+        header: "No. of Clothes Ironed",
+        size: 150,
+      },
+      {
+        accessorKey: "error_code",
+        header: "Error Code",
+        size: 150,
+      },
+      {
+        accessorKey: "resolve_status",
+        header: "Resolve Status",
+        size: 150,
+      },
+      {
+        accessorKey: "resolved_by",
+        header: "Resolved By",
+        size: 150,
+      },
+      {
+        accessorKey: "created_at",
         header: "Created At",
+        enableEditing: false,
         size: 200,
-        Cell: ({ cell }) => <Box>{formatDate(cell.getValue() as string)}</Box>, // Format the date
-        enableEditing: false, // Typically, this field is not editable
+        Cell: ({ cell }) => <Box>{formatDate(cell.getValue() as string)}</Box>,
       },
     ],
     []
   );
 
-  const openDeleteConfirmModal = (row: HostelOrderLimit) => {
-    if (window.confirm("Are you sure you want to delete this record?")) {
+  const openDeleteConfirmModal = (row: any) => {
+    if (window.confirm("Are you sure you want to delete this staff error?")) {
       axiosInstance
-        .delete(`hostel-order-limits/${row.id}/`)
-        .then(() => {
-          getOrderLimits();
+        .delete(`staff-errors/${row.original.id}/`)
+        .then((response) => {
+          getStaffErrors();
         })
         .catch((error) => console.error(error));
     }
   };
 
   const table = useMaterialReactTable({
-    data: orderLimits,
+    data: staffErrors,
     columns,
     manualFiltering: true,
     manualPagination: true,
@@ -210,51 +211,23 @@ const ManageHostelOrderLimits: React.FC = () => {
     columnFilterDisplayMode: "popover",
     paginationDisplayMode: "pages",
     positionToolbarAlertBanner: "bottom",
-
-    enableEditing: true,
-    onEditingRowSave: handleEditOrderLimit,
-    renderEditRowDialogContent: ({ table, row, internalEditComponents }) => (
-      <>
-        <DialogTitle variant="h3">Edit Order Limit</DialogTitle>
-        <DialogContent
-          sx={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}
-        >
-          {internalEditComponents}
-        </DialogContent>
-        <DialogActions>
-          <MRT_EditActionButtons variant="text" table={table} row={row} />
-        </DialogActions>
-      </>
-    ),
+    enableEditing: true, // Disable editing
+    // enableRowActions: false, // Disable row actions
+    renderTopToolbarCustomActions: () => null, // No custom actions (e.g., no create button)
     renderRowActions: ({ row, table }) => (
       <Box sx={{ display: "flex", gap: "1rem" }}>
-        <Tooltip title="Edit">
-          <IconButton onClick={() => table.setEditingRow(row)}>
-            <EditIcon />
-          </IconButton>
-        </Tooltip>
         <Tooltip title="Delete">
-          <IconButton
-            color="error"
-            onClick={() => openDeleteConfirmModal(row.original)}
-          >
+          <IconButton color="error" onClick={() => openDeleteConfirmModal(row)}>
             <DeleteIcon />
           </IconButton>
         </Tooltip>
       </Box>
     ),
-    renderTopToolbarCustomActions: ({ table }) => (
-      <Box
-        sx={{ display: "flex", gap: "16px", padding: "8px", flexWrap: "wrap" }}
-      >
-        <CreateHostelOrderLimit getHostelOrderLimits={getOrderLimits} />
-      </Box>
-    ),
   });
 
   return (
-    <div>{orderLimits.length >= 0 && <MaterialReactTable table={table} />}</div>
+    <div>{staffErrors.length >= 0 && <MaterialReactTable table={table} />}</div>
   );
 };
 
-export default ManageHostelOrderLimits;
+export default ManageStaffErrors;

@@ -203,10 +203,10 @@ const Colleges: React.FC = () => {
     enableRowSelection: true,
     columnFilterDisplayMode: "popover",
     paginationDisplayMode: "pages",
-
+    
     createDisplayMode: "modal",
     onCreatingRowSave: handleCreateCollege,
-    enableEditing: true,
+    enableEditing:true,
     onEditingRowSave: handleEditCollege,
     //optionally customize modal content
     renderCreateRowDialogContent: ({ table, row, internalEditComponents }) => (
@@ -260,7 +260,11 @@ const Colleges: React.FC = () => {
     ),
   });
 
-  return <div>{colleges && <MaterialReactTable table={table} />}</div>;
+  return (
+    <div>
+      {colleges.length && <MaterialReactTable table={table} />}
+    </div>
+  );
 };
 
 export default Colleges;

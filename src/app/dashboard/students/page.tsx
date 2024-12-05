@@ -158,6 +158,7 @@ const Students: React.FC = () => {
 
     table.setEditingRow(null);
   };
+
   // Add handler function for deleting student pin
   const handleDeleteStudentPin = async (studentId: number) => {
     if (
@@ -176,6 +177,7 @@ const Students: React.FC = () => {
       }
     }
   };
+  
   const columns = useMemo<MRT_ColumnDef<Student>[]>(
     () => [
       {
@@ -398,7 +400,9 @@ const Students: React.FC = () => {
   });
 
   return (
-    <div>{students && hostels && <MaterialReactTable table={table} />}</div>
+    <div>
+      {students && hostels.length > 0 && <MaterialReactTable table={table} />}
+    </div>
   );
 };
 

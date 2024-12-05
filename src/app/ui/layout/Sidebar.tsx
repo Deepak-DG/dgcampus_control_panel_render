@@ -24,32 +24,49 @@ const Sidebar = () => {
         >
           Staff Performance
         </Link>
+
+        <Link
+          href="/dashboard/order-analytics"
+          className={getLinkClass("/dashboard/order-analytics/")}
+        >
+          Order Analytics
+        </Link>
+        <Link
+          href="/dashboard/staff-errors"
+          className={getLinkClass("/dashboard/staff-errors/")}
+        >
+          Staff Errors
+        </Link>
         <Link
           href="/dashboard/students"
           className={getLinkClass("/dashboard/students/")}
         >
           Students
         </Link>
-        
+
         <Link
           href="/dashboard/otps"
           className={getLinkClass("/dashboard/otps/")}
         >
           OTPs
         </Link>
-        
         <Link
           href="/dashboard/student-auth-whatsapp-logs"
           className={getLinkClass("/dashboard/student-auth-whatsapp-logs/")}
         >
           Student Auth Whatsapp Logs
         </Link>
-
         <Link
           href="/dashboard/staffs"
           className={getLinkClass("/dashboard/staffs/")}
         >
           Staffs
+        </Link>
+        <Link
+          href="/dashboard/roles"
+          className={getLinkClass("/dashboard/roles/")}
+        >
+          Roles
         </Link>
         <Link
           href="/dashboard/users"
@@ -62,6 +79,25 @@ const Sidebar = () => {
           className={getLinkClass("/dashboard/rooms/")}
         >
           Rooms
+        </Link>
+
+        <Link
+          href="/dashboard/exceptional-limit-days"
+          className={getLinkClass("/dashboard/exceptional-limit-days/")}
+        >
+          Exceptional Limit Days
+        </Link>
+        <Link
+          href="/dashboard/hostel-groups"
+          className={getLinkClass("/dashboard/hostel-groups/")}
+        >
+          Hostel Groups
+        </Link>
+        <Link
+          href="/dashboard/holidays"
+          className={getLinkClass("/dashboard/holidays/")}
+        >
+          Holidays
         </Link>
         <Link
           href="/dashboard/hostels"
@@ -93,13 +129,13 @@ const Sidebar = () => {
         >
           Orders
         </Link>
-
         <Link
           href="/dashboard/order-ratings"
           className={getLinkClass("/dashboard/order-ratings/")}
         >
           Orders Ratings
         </Link>
+
         <Link
           href="/dashboard/whatsapp-message-logs"
           className={getLinkClass("/dashboard/whatsapp-message-logs/")}
@@ -132,6 +168,13 @@ const Sidebar = () => {
           className={getLinkClass("/dashboard/laundry-manager-logs/")}
         >
           Laundry Manager Logs
+        </Link>
+
+        <Link
+          href="/dashboard/money-found"
+          className={getLinkClass("/dashboard/money-found/")}
+        >
+          Money Found
         </Link>
       </nav>
       <Link href="/pack" className={getLinkClass("/pack/")}>

@@ -26,6 +26,8 @@ export type Hostel = {
   id: number;
   hostel_name: string;
   college_name: string;
+  hostel_group_name: string;
+  group: string;
   college: number;
   created_at: string;
 };
@@ -115,6 +117,7 @@ const ManageHostels: React.FC = () => {
       .post(`hostels/`, {
         hostel_name: values.hostel_name,
         college_name: values.college_name,
+        hostel_group_name: values.hostel_group_name,
       })
       .then((response) => {
         getHostels();
@@ -137,6 +140,7 @@ const ManageHostels: React.FC = () => {
       .patch(`hostels/${values.id}/`, {
         hostel_name: values.hostel_name,
         college_name: values.college_name,
+        hostel_group_name: values.hostel_group_name,
       })
       .then((response) => {
         getHostels();
@@ -164,6 +168,17 @@ const ManageHostels: React.FC = () => {
         size: 150,
       },
       {
+        accessorKey: "hostel_group_name",
+        header: "Hostel Group Name",
+        size: 150,
+      },
+      {
+        accessorKey: "group",
+        header: "Group",
+        enableEditing: false,
+        size: 150,
+      },
+      {
         accessorKey: "college",
         header: "College",
         enableEditing: false,
@@ -174,7 +189,9 @@ const ManageHostels: React.FC = () => {
         header: "Created At",
         enableEditing: false,
         size: 200,
-        Cell: ({ cell }) => <Box>{formatDate(cell.getValue() as string)}</Box>,
+        Cell: ({ cell }) => (
+          <Box>{formatDate(cell.getValue() as string)}</Box>
+        ),
       },
     ],
     []

@@ -6,8 +6,9 @@ import { useEffect, useState } from "react";
 import { mkConfig, generateCsv, download } from "export-to-csv";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import Button from "@mui/material/Button";
-import StaffPerformance from "../components/dashboard/StaffPerformance";
-import HostelSlotCount from "../components/dashboard/HostelSlotCount";
+import StaffPerformance from "../lib/dashboard/StaffPerformance";
+import HostelSlotCount from "../lib/dashboard/HostelSlotCount";
+import HostelOrderLimit from "../lib/dashboard/HostelOrderLimit";
 
 type SummaryData = {
   total_colleges: number;
@@ -16,20 +17,27 @@ type SummaryData = {
   total_slots: number;
   total_users: number;
   total_students: number;
+  total_otp: number;
+  total_student_auth_whatsapp_log: number;
   total_staff: number;
+  total_roles: number; // New field
+  total_hostel_order_limit: number; // New field
   total_orders: number;
   total_whatsapp_message_logs: number;
   total_washing_details: number;
   total_folding_details: number;
   total_ironing_details: number;
-  total_pre_booked_orders: number; // Add these lines
-  total_picked_up_orders: number; // Add these lines
-  total_pickup_not_done_orders: number; // Add these lines
-  total_washing_started_orders: number; // Add these lines
-  total_folding_done_orders: number; // Add these lines
-  total_ready_to_deliver_orders: number; // Add these lines
-  total_delivered_orders: number; // Add these lines
-  total_hold_orders: number; // Add these lines
+  total_staff_errors: number; // New field
+  total_order_ratings: number; // New field
+  total_money_found_logs: number; // New field
+  total_pre_booked_orders: number;
+  total_picked_up_orders: number;
+  total_pickup_not_done_orders: number;
+  total_washing_started_orders: number;
+  total_folding_done_orders: number;
+  total_ready_to_deliver_orders: number;
+  total_delivered_orders: number;
+  total_hold_orders: number;
 };
 
 const Dashboard = () => {
@@ -57,7 +65,7 @@ const Dashboard = () => {
   const fetchAndDownloadData = async () => {
     try {
       const response = await axiosInstance.get(
-        "students-count-room-hostel/"
+        "https://campus.dhobig.com/api/students-count-room-hostel/"
       );
       const data = response.data;
 
@@ -112,9 +120,31 @@ const Dashboard = () => {
             <h2 className="text-lg font-semibold">Total Students</h2>
             <p className="text-2xl">{summary.total_students}</p>
           </div>
+
+          <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
+            <h2 className="text-lg font-semibold">Total OTP</h2>
+            <p className="text-2xl">{summary.total_otp}</p>
+          </div>
+          <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
+            <h2 className="text-lg font-semibold">
+              Total Student Auth Whatsapp Log
+            </h2>
+            <p className="text-2xl">
+              {summary.total_student_auth_whatsapp_log}
+            </p>
+          </div>
+
           <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
             <h2 className="text-lg font-semibold">Total Staff</h2>
             <p className="text-2xl">{summary.total_staff}</p>
+          </div>
+          <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
+            <h2 className="text-lg font-semibold">Total Roles</h2>
+            <p className="text-2xl">{summary.total_roles}</p>
+          </div>
+          <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
+            <h2 className="text-lg font-semibold">Total Hostel Order Limit</h2>
+            <p className="text-2xl">{summary.total_hostel_order_limit}</p>
           </div>
           <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
             <h2 className="text-lg font-semibold">Total Orders</h2>
@@ -137,6 +167,18 @@ const Dashboard = () => {
           <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
             <h2 className="text-lg font-semibold">Total Ironing Details</h2>
             <p className="text-2xl">{summary.total_ironing_details}</p>
+          </div>
+          <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
+            <h2 className="text-lg font-semibold">Total Staff Errors</h2>
+            <p className="text-2xl">{summary.total_staff_errors}</p>
+          </div>
+          <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
+            <h2 className="text-lg font-semibold">Total Order Ratings</h2>
+            <p className="text-2xl">{summary.total_order_ratings}</p>
+          </div>
+          <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
+            <h2 className="text-lg font-semibold">Total Money Found Logs</h2>
+            <p className="text-2xl">{summary.total_money_found_logs}</p>
           </div>
         </div>
       )}
@@ -180,6 +222,8 @@ const Dashboard = () => {
       )}
       <HostelSlotCount />
 
+      <HostelOrderLimit />
+
       <div className="m-4">
         <Button
           onClick={fetchAndDownloadData}
@@ -187,25 +231,9 @@ const Dashboard = () => {
           color="primary"
           startIcon={<FileDownloadIcon />}
         >
-          Hostel Room Occupancy
+          Hostel Room˚ Occupancy
         </Button>
       </div>
-      {/* <button
-        onClick={fetchAndDownloadData}
-        style={{
-          backgroundColor: "#1976d2", // MUI primary color
-          color: "#fff",
-          border: "none",
-          padding: "10px 20px",
-          borderRadius: "4px",
-          display: "flex",
-          alignItems: "center",
-          cursor: "pointer",
-        }}
-      >
-        <FileDownloadIcon style={{ marginRight: "8px" }} />
-        Hostel Room Occupancy
-      </button> */}
     </div>
   );
 };

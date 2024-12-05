@@ -24,6 +24,7 @@ import axiosInstance from "@/api/axiosInstance";
 export type WhatsAppAPILog = {
   id: number;
   mobile: string;
+  template_name: string;
   request_data: string;
   response_data: string;
   status_code: number;
@@ -114,6 +115,7 @@ const WhatsAppLogs: React.FC = () => {
     axiosInstance
       .post(`pack/whatsapp-logs/`, {
         mobile: values.mobile,
+        template_name: values.template_name,
         request_data: values.request_data,
         response_data: values.response_data,
         status_code: values.status_code,
@@ -136,6 +138,7 @@ const WhatsAppLogs: React.FC = () => {
     axiosInstance
       .patch(`pack/whatsapp-logs/${values.id}/`, {
         mobile: values.mobile,
+        template_name: values.template_name,
         request_data: values.request_data,
         response_data: values.response_data,
         status_code: values.status_code,
@@ -158,6 +161,11 @@ const WhatsAppLogs: React.FC = () => {
       {
         accessorKey: "mobile",
         header: "Mobile",
+        size: 150,
+      },
+      {
+        accessorKey: "template_name",
+        header: "Template Name",
         size: 150,
       },
       {

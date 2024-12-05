@@ -20,20 +20,20 @@ import {
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import axiosInstance from "@/api/axiosInstance";
+import { formatDate } from "@/app/lib/DateUtils/dateUtils";
 
-export type Payment = {
+export type MoneyFound = {
   id: number;
-  subscription: string;
-  user: string;
-  phonepe_order_id: string;
-  merchant_transaction_id: string;
-  payment_status: string;
+  order: string;
+  staff: string;
   amount: number;
-  created_at: string;
+  box_id: string;
+  found_at: string;
 };
 
-const Payments: React.FC = () => {
-  const [payments, setPayments] = useState<Payment[]>([]);
+const ManageMoneyFound: React.FC = () => {
+  const [moneyFound, setMoneyFound] = useState<MoneyFound[]>([]);
+  const [test, setTest] = useState<any>(null);
   const [isError, setIsError] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isRefetching, setIsRefetching] = useState<boolean>(false);
@@ -47,7 +47,7 @@ const Payments: React.FC = () => {
   });
 
   useEffect(() => {
-    getPayments();
+    getMoneyFound();
   }, [columnFilters, pagination.pageIndex, pagination.pageSize, sorting]);
 
   // Helper function to build query string from filters
@@ -66,8 +66,8 @@ const Payments: React.FC = () => {
     return desc ? `-${id}` : id;
   };
 
-  const getPayments = async () => {
-    if (!payments.length) {
+  const getMoneyFound = async () => {
+    if (!moneyFound.length) {
       setIsLoading(true);
     } else {
       setIsRefetching(true);
@@ -89,17 +89,13 @@ const Payments: React.FC = () => {
     const query = queryParams.toString();
 
     await axiosInstance
-      .get(`pack/payment?${query}`)
+      .get(`money-found?${query}`)
       .then((response) => {
-        console.log(response.data);
-        setPayments(response.data.results);
+        setMoneyFound(response.data.results);
         setRowCount(response.data.count);
         setIsError(false);
       })
-      .catch((error) => {
-        console.log(error);
-        setIsError(true);
-      });
+      .catch((error) => setIsError(true));
     setIsLoading(false);
     setIsRefetching(false);
   };
@@ -108,115 +104,107 @@ const Payments: React.FC = () => {
     setPagination((prev) => ({ ...prev, pageIndex: 0 }));
   }, [columnFilters]);
 
-  const handleCreatePayment = async ({
+  const handleCreateMoneyFound = async ({
     values,
     table,
   }: {
-    values: Payment;
-    table: MRT_TableInstance<Payment>;
+    values: MoneyFound;
+    table: MRT_TableInstance<MoneyFound>;
   }) => {
     axiosInstance
-      .post(`pack/payment/`, {
-        subscription: values.subscription,
-        user: values.user,
-        phonepe_order_id: values.phonepe_order_id,
-        merchant_transaction_id: values.merchant_transaction_id,
-        payment_status: values.payment_status,
+      .post(`money-found/`, {
+        order: values.order,
+        staff: values.staff,
         amount: values.amount,
+        box_id: values.box_id,
+        found_at: values.found_at,
       })
       .then((response) => {
-        getPayments();
+        getMoneyFound();
       })
       .catch((error) => console.error(error));
 
     table.setCreatingRow(null);
   };
 
-  const handleEditPayment = async ({
+  const handleEditMoneyFound = async ({
     values,
     table,
   }: {
-    values: Payment;
-    table: MRT_TableInstance<Payment>;
+    values: MoneyFound;
+    table: MRT_TableInstance<MoneyFound>;
   }) => {
+    setTest(values);
+
     axiosInstance
-      .patch(`pack/payment/${values.id}/`, {
-        subscription: values.subscription,
-        user: values.user,
-        phonepe_order_id: values.phonepe_order_id,
-        merchant_transaction_id: values.merchant_transaction_id,
-        payment_status: values.payment_status,
+      .patch(`money-found/${values.id}/`, {
+        order: values.order,
+        staff: values.staff,
         amount: values.amount,
+        box_id: values.box_id,
+        found_at: values.found_at,
       })
       .then((response) => {
-        getPayments();
+        getMoneyFound();
       })
       .catch((error) => console.error(error));
     table.setEditingRow(null);
   };
 
-  const columns = useMemo<MRT_ColumnDef<Payment>[]>(
+  const columns = useMemo<MRT_ColumnDef<MoneyFound>[]>(
     () => [
       {
-        accessorKey: "id",
+        accessorKey: "id", //access nested data with dot notation
         header: "ID",
         enableEditing: false,
         size: 150,
       },
       {
-        accessorKey: "subscription",
-        header: "Subscription",
+        accessorKey: "order",
+        header: "Order",
         size: 150,
       },
       {
-        accessorKey: "user",
-        header: "User",
+        accessorKey: "staff",
+        header: "Staff",
         size: 150,
-      },
-      {
-        accessorKey: "phonepe_order_id",
-        header: "Phonepe Order ID",
-        size: 200,
-      },
-      {
-        accessorKey: "merchant_transaction_id",
-        header: "Merchant Transaction ID",
-        size: 200,
-      },
-      {
-        accessorKey: "payment_status",
-        header: "Payment Status",
-        size: 200,
       },
       {
         accessorKey: "amount",
         header: "Amount",
         size: 150,
+        Cell: ({ cell }) => <Box>{cell.getValue() as number}</Box>,
       },
       {
-        accessorKey: "created_at",
-        header: "Created At",
+        accessorKey: "box_id",
+        header: "Box ID",
+        size: 150,
+      },
+      {
+        accessorKey: "found_at",
+        header: "Found At",
         enableEditing: false,
         size: 200,
+        Cell: ({ cell }) => <Box>{formatDate(cell.getValue() as string)}</Box>,
       },
     ],
     []
   );
 
   //DELETE action
-  const openDeleteConfirmModal = (row: Payment) => {
-    if (window.confirm("Are you sure you want to delete this payment?")) {
+  const openDeleteConfirmModal = (row: MoneyFound) => {
+    if (window.confirm("Are you sure you want to delete this record?")) {
       axiosInstance
-        .delete(`pack/payment/${row.id}/`)
+        .delete(`money-found/${row.id}/`)
         .then((response) => {
-          getPayments();
+          getMoneyFound();
         })
         .catch((error) => console.error(error));
     }
   };
 
   const table = useMaterialReactTable({
-    data: payments,
+    data: moneyFound,
     columns,
     manualFiltering: true,
     manualPagination: true,
@@ -245,13 +233,13 @@ const Payments: React.FC = () => {
     positionToolbarAlertBanner: "bottom",
 
     createDisplayMode: "modal",
-    onCreatingRowSave: handleCreatePayment,
+    onCreatingRowSave: handleCreateMoneyFound,
     enableEditing: true,
-    onEditingRowSave: handleEditPayment,
+    onEditingRowSave: handleEditMoneyFound,
     //optionally customize modal content
     renderCreateRowDialogContent: ({ table, row, internalEditComponents }) => (
       <>
-        <DialogTitle variant="h3">Create New Payment</DialogTitle>
+        <DialogTitle variant="h3">Create New Money Found Record</DialogTitle>
         <DialogContent
           sx={{ display: "flex", flexDirection: "column", gap: "1rem" }}
         >
@@ -265,7 +253,7 @@ const Payments: React.FC = () => {
     //optionally customize modal content
     renderEditRowDialogContent: ({ table, row, internalEditComponents }) => (
       <>
-        <DialogTitle variant="h3">Edit Payment</DialogTitle>
+        <DialogTitle variant="h3">Edit Money Found Record</DialogTitle>
         <DialogContent
           sx={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}
         >
@@ -295,14 +283,14 @@ const Payments: React.FC = () => {
     ),
     renderTopToolbarCustomActions: ({ table }) => (
       <Button variant="contained" onClick={() => table.setCreatingRow(true)}>
-        Create New Payment
+        Create New Record
       </Button>
     ),
   });
 
   return (
-    <div>{payments.length >= 0 && <MaterialReactTable table={table} />}</div>
-);
+    <div>{moneyFound.length >= 0 && <MaterialReactTable table={table} />}</div>
+  );
 };
 
-export default Payments;
+export default ManageMoneyFound;

@@ -20,13 +20,14 @@ import {
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import BackspaceOutlinedIcon from "@mui/icons-material/BackspaceOutlined";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import { mkConfig, generateCsv, download } from "export-to-csv"; //or use your library of choice here
 import axiosInstance from "@/api/axiosInstance";
 import CreateStaff from "@/app/lib/staff/CreateStaff";
 import BulkUploadStaff from "@/app/lib/staff/BulkUplodStaff";
 import { formatDate } from "@/app/lib/DateUtils/dateUtils";
-import EditRolesDialog from "@/app/components/staffs/EditRolesDialog";
+import EditRolesDialog from "@/app/lib/staff/EditRolesDialog";
 
 export type Staff = {
   id: number;
@@ -38,6 +39,7 @@ export type Staff = {
   college: string;
   college_name: string;
   created_at: string;
+  pin_set: string;
 };
 
 export type Role = {
@@ -169,7 +171,7 @@ const Staff: React.FC = () => {
         staff_id: values.staff_id,
         user: values.user,
         name: values.name,
-        roles: [values.roles_display],
+        // roles: [values.roles_display],
         college: values.college,
       });
       getStaff();
@@ -178,6 +180,23 @@ const Staff: React.FC = () => {
     }
 
     table.setEditingRow(null);
+  };
+
+  // Add handler function for deleting student pin
+  const handleDeleteStaffPin = async (staffId: number) => {
+    if (
+      window.confirm("Are you sure you want to delete the PIN for this staff?")
+    ) {
+      try {
+        const response = await axiosInstance.delete(
+          `admin/delete-staff-pin/${staffId}/`
+        ); // Assuming you update the pin field to null
+        console.log(response);
+        getStaff();
+      } catch (error) {
+        console.error(error);
+      }
+    }
   };
 
   const columns = useMemo<MRT_ColumnDef<Staff>[]>(
@@ -252,6 +271,31 @@ const Staff: React.FC = () => {
         enableEditing: false,
         size: 150,
         Cell: ({ cell }) => <Box>{formatDate(cell.getValue() as string)}</Box>,
+      },
+      {
+        accessorKey: "pin_set",
+        header: "Delete Pin",
+        enableEditing: false,
+        size: 150,
+        Cell: ({ row, cell }) => {
+          const isPinSet = cell.getValue();
+          return (
+            <Box>
+              {isPinSet ? (
+                <Tooltip title="Delete Student Pin">
+                  <IconButton
+                    color="error"
+                    onClick={() => handleDeleteStaffPin(row.original.id)}
+                  >
+                    <BackspaceOutlinedIcon />
+                  </IconButton>
+                </Tooltip>
+              ) : (
+                "Pin not set"
+              )}
+            </Box>
+          );
+        },
       },
     ],
     [roles]

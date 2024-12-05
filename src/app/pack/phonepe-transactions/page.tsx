@@ -21,19 +21,23 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import axiosInstance from "@/api/axiosInstance";
 
-export type Payment = {
+export type PhonePeTransaction = {
   id: number;
-  subscription: string;
-  user: string;
-  phonepe_order_id: string;
+  merchant_id: string;
   merchant_transaction_id: string;
-  payment_status: string;
-  amount: number;
+  transaction_id: string;
+  amount: string; // Using string to handle precise decimal values
+  state: string;
+  payment_instrument_type: string;
+  payment_instrument_details: Record<string, any>; // JSON data
+  response_code: string;
+  success: boolean;
+  message: string;
   created_at: string;
 };
 
-const Payments: React.FC = () => {
-  const [payments, setPayments] = useState<Payment[]>([]);
+const PhonePeTransactions: React.FC = () => {
+  const [transactions, setTransactions] = useState<PhonePeTransaction[]>([]);
   const [isError, setIsError] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isRefetching, setIsRefetching] = useState<boolean>(false);
@@ -47,10 +51,9 @@ const Payments: React.FC = () => {
   });
 
   useEffect(() => {
-    getPayments();
+    getTransactions();
   }, [columnFilters, pagination.pageIndex, pagination.pageSize, sorting]);
 
-  // Helper function to build query string from filters
   const buildFiltersString = (filters: any[]) => {
     const params = new URLSearchParams();
     filters.forEach((filter) => {
@@ -59,15 +62,14 @@ const Payments: React.FC = () => {
     return params.toString();
   };
 
-  // Helper function to build sorting string
   const buildSortingString = (sorting: any[]) => {
     if (sorting.length === 0) return "";
     const { id, desc } = sorting[0];
     return desc ? `-${id}` : id;
   };
 
-  const getPayments = async () => {
-    if (!payments.length) {
+  const getTransactions = async () => {
+    if (!transactions.length) {
       setIsLoading(true);
     } else {
       setIsRefetching(true);
@@ -76,9 +78,7 @@ const Payments: React.FC = () => {
     const apiPageIndex = pagination.pageIndex + 1;
     const filtersParams = buildFiltersString(columnFilters);
     const sortingQuery = buildSortingString(sorting);
-    const pageSizeQuery = pagination.pageSize
-      ? pagination.pageSize.toString()
-      : "";
+    const pageSizeQuery = pagination.pageSize ? pagination.pageSize.toString() : "";
     const pageIndexQuery = pagination.pageIndex ? `${apiPageIndex}` : "";
 
     const queryParams = new URLSearchParams(filtersParams);
@@ -89,10 +89,9 @@ const Payments: React.FC = () => {
     const query = queryParams.toString();
 
     await axiosInstance
-      .get(`pack/payment?${query}`)
+      .get(`pack/phonepe-transactions?${query}`)
       .then((response) => {
-        console.log(response.data);
-        setPayments(response.data.results);
+        setTransactions(response.data.results);
         setRowCount(response.data.count);
         setIsError(false);
       })
@@ -100,6 +99,7 @@ const Payments: React.FC = () => {
         console.log(error);
         setIsError(true);
       });
+
     setIsLoading(false);
     setIsRefetching(false);
   };
@@ -108,115 +108,135 @@ const Payments: React.FC = () => {
     setPagination((prev) => ({ ...prev, pageIndex: 0 }));
   }, [columnFilters]);
 
-  const handleCreatePayment = async ({
+  const handleCreateTransaction = async ({
     values,
     table,
   }: {
-    values: Payment;
-    table: MRT_TableInstance<Payment>;
+    values: PhonePeTransaction;
+    table: MRT_TableInstance<PhonePeTransaction>;
   }) => {
     axiosInstance
-      .post(`pack/payment/`, {
-        subscription: values.subscription,
-        user: values.user,
-        phonepe_order_id: values.phonepe_order_id,
+      .post(`pack/phonepe-transactions/`, {
+        merchant_id: values.merchant_id,
         merchant_transaction_id: values.merchant_transaction_id,
-        payment_status: values.payment_status,
+        transaction_id: values.transaction_id,
         amount: values.amount,
+        state: values.state,
+        payment_instrument_type: values.payment_instrument_type,
+        payment_instrument_details: values.payment_instrument_details,
+        response_code: values.response_code,
+        success: values.success,
+        message: values.message,
       })
-      .then((response) => {
-        getPayments();
+      .then(() => {
+        getTransactions();
       })
       .catch((error) => console.error(error));
 
     table.setCreatingRow(null);
   };
 
-  const handleEditPayment = async ({
+  const handleEditTransaction = async ({
     values,
     table,
   }: {
-    values: Payment;
-    table: MRT_TableInstance<Payment>;
+    values: PhonePeTransaction;
+    table: MRT_TableInstance<PhonePeTransaction>;
   }) => {
     axiosInstance
-      .patch(`pack/payment/${values.id}/`, {
-        subscription: values.subscription,
-        user: values.user,
-        phonepe_order_id: values.phonepe_order_id,
+      .patch(`pack/phonepe-transactions/${values.id}/`, {
+        merchant_id: values.merchant_id,
         merchant_transaction_id: values.merchant_transaction_id,
-        payment_status: values.payment_status,
+        transaction_id: values.transaction_id,
         amount: values.amount,
+        state: values.state,
+        payment_instrument_type: values.payment_instrument_type,
+        payment_instrument_details: values.payment_instrument_details,
+        response_code: values.response_code,
+        success: values.success,
+        message: values.message,
       })
-      .then((response) => {
-        getPayments();
+      .then(() => {
+        getTransactions();
       })
       .catch((error) => console.error(error));
     table.setEditingRow(null);
   };
 
-  const columns = useMemo<MRT_ColumnDef<Payment>[]>(
-    () => [
-      {
-        accessorKey: "id",
-        header: "ID",
-        enableEditing: false,
-        size: 150,
-      },
-      {
-        accessorKey: "subscription",
-        header: "Subscription",
-        size: 150,
-      },
-      {
-        accessorKey: "user",
-        header: "User",
-        size: 150,
-      },
-      {
-        accessorKey: "phonepe_order_id",
-        header: "Phonepe Order ID",
-        size: 200,
-      },
-      {
-        accessorKey: "merchant_transaction_id",
-        header: "Merchant Transaction ID",
-        size: 200,
-      },
-      {
-        accessorKey: "payment_status",
-        header: "Payment Status",
-        size: 200,
-      },
-      {
-        accessorKey: "amount",
-        header: "Amount",
-        size: 150,
-      },
-      {
-        accessorKey: "created_at",
-        header: "Created At",
-        enableEditing: false,
-        size: 200,
-      },
-    ],
-    []
-  );
+  const columns = useMemo<MRT_ColumnDef<PhonePeTransaction>[]>(() => [
+    {
+      accessorKey: "id",
+      header: "ID",
+      enableEditing: false,
+      size: 150,
+    },
+    {
+      accessorKey: "merchant_id",
+      header: "Merchant ID",
+      size: 150,
+    },
+    {
+      accessorKey: "merchant_transaction_id",
+      header: "Merchant Transaction ID",
+      size: 200,
+    },
+    {
+      accessorKey: "transaction_id",
+      header: "Transaction ID",
+      size: 200,
+    },
+    {
+      accessorKey: "amount",
+      header: "Amount",
+      size: 100,
+    },
+    {
+      accessorKey: "state",
+      header: "State",
+      size: 100,
+    },
+    {
+      accessorKey: "payment_instrument_type",
+      header: "Payment Instrument Type",
+      size: 150,
+    },
+    {
+      accessorKey: "response_code",
+      header: "Response Code",
+      size: 100,
+    },
+    {
+      accessorKey: "success",
+      header: "Success",
+      Cell: ({ cell }) => (cell.getValue() ? "Yes" : "No"),
+      size: 100,
+    },
+    {
+      accessorKey: "message",
+      header: "Message",
+      size: 200,
+    },
+    {
+      accessorKey: "created_at",
+      header: "Created At",
+      enableEditing: false,
+      size: 200,
+    },
+  ], []);
 
-  //DELETE action
-  const openDeleteConfirmModal = (row: Payment) => {
-    if (window.confirm("Are you sure you want to delete this payment?")) {
+  const openDeleteConfirmModal = (row: PhonePeTransaction) => {
+    if (window.confirm("Are you sure you want to delete this transaction?")) {
       axiosInstance
-        .delete(`pack/payment/${row.id}/`)
-        .then((response) => {
-          getPayments();
+        .delete(`pack/phonepe-transactions/${row.id}/`)
+        .then(() => {
+          getTransactions();
         })
         .catch((error) => console.error(error));
     }
   };
 
   const table = useMaterialReactTable({
-    data: payments,
+    data: transactions,
     columns,
     manualFiltering: true,
     manualPagination: true,
@@ -245,16 +265,13 @@ const Payments: React.FC = () => {
     positionToolbarAlertBanner: "bottom",
 
     createDisplayMode: "modal",
-    onCreatingRowSave: handleCreatePayment,
+    onCreatingRowSave: handleCreateTransaction,
     enableEditing: true,
-    onEditingRowSave: handleEditPayment,
-    //optionally customize modal content
+    onEditingRowSave: handleEditTransaction,
     renderCreateRowDialogContent: ({ table, row, internalEditComponents }) => (
       <>
-        <DialogTitle variant="h3">Create New Payment</DialogTitle>
-        <DialogContent
-          sx={{ display: "flex", flexDirection: "column", gap: "1rem" }}
-        >
+        <DialogTitle variant="h3">Create New PhonePe Transaction</DialogTitle>
+        <DialogContent sx={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
           {internalEditComponents}
         </DialogContent>
         <DialogActions>
@@ -262,13 +279,10 @@ const Payments: React.FC = () => {
         </DialogActions>
       </>
     ),
-    //optionally customize modal content
     renderEditRowDialogContent: ({ table, row, internalEditComponents }) => (
       <>
-        <DialogTitle variant="h3">Edit Payment</DialogTitle>
-        <DialogContent
-          sx={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}
-        >
+        <DialogTitle variant="h3">Edit PhonePe Transaction</DialogTitle>
+        <DialogContent sx={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
           {internalEditComponents}
         </DialogContent>
         <DialogActions>
@@ -284,10 +298,7 @@ const Payments: React.FC = () => {
           </IconButton>
         </Tooltip>
         <Tooltip title="Delete">
-          <IconButton
-            color="error"
-            onClick={() => openDeleteConfirmModal(row.original)}
-          >
+          <IconButton color="error" onClick={() => openDeleteConfirmModal(row.original)}>
             <DeleteIcon />
           </IconButton>
         </Tooltip>
@@ -295,14 +306,14 @@ const Payments: React.FC = () => {
     ),
     renderTopToolbarCustomActions: ({ table }) => (
       <Button variant="contained" onClick={() => table.setCreatingRow(true)}>
-        Create New Payment
+        Create New PhonePe Transaction
       </Button>
     ),
   });
 
   return (
-    <div>{payments.length >= 0 && <MaterialReactTable table={table} />}</div>
-);
+    <div>{transactions.length >= 0 && <MaterialReactTable table={table} />}</div>
+  );
 };
 
-export default Payments;
+export default PhonePeTransactions;

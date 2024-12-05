@@ -20,20 +20,17 @@ import {
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import axiosInstance from "@/api/axiosInstance";
+import { formatDate } from "@/app/lib/DateUtils/dateUtils";
 
-export type Payment = {
+export type HostelGroup = {
   id: number;
-  subscription: string;
-  user: string;
-  phonepe_order_id: string;
-  merchant_transaction_id: string;
-  payment_status: string;
-  amount: number;
+  hostel_group_name: string;
+  max_orders: number;
   created_at: string;
 };
 
-const Payments: React.FC = () => {
-  const [payments, setPayments] = useState<Payment[]>([]);
+const ManageHostelGroups: React.FC = () => {
+  const [hostelGroups, setHostelGroups] = useState<HostelGroup[]>([]);
   const [isError, setIsError] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isRefetching, setIsRefetching] = useState<boolean>(false);
@@ -47,10 +44,9 @@ const Payments: React.FC = () => {
   });
 
   useEffect(() => {
-    getPayments();
+    getHostelGroups();
   }, [columnFilters, pagination.pageIndex, pagination.pageSize, sorting]);
 
-  // Helper function to build query string from filters
   const buildFiltersString = (filters: any[]) => {
     const params = new URLSearchParams();
     filters.forEach((filter) => {
@@ -59,15 +55,14 @@ const Payments: React.FC = () => {
     return params.toString();
   };
 
-  // Helper function to build sorting string
   const buildSortingString = (sorting: any[]) => {
     if (sorting.length === 0) return "";
     const { id, desc } = sorting[0];
     return desc ? `-${id}` : id;
   };
 
-  const getPayments = async () => {
-    if (!payments.length) {
+  const getHostelGroups = async () => {
+    if (!hostelGroups.length) {
       setIsLoading(true);
     } else {
       setIsRefetching(true);
@@ -89,17 +84,13 @@ const Payments: React.FC = () => {
     const query = queryParams.toString();
 
     await axiosInstance
-      .get(`pack/payment?${query}`)
+      .get(`hostel-groups?${query}`)
       .then((response) => {
-        console.log(response.data);
-        setPayments(response.data.results);
+        setHostelGroups(response.data.results);
         setRowCount(response.data.count);
         setIsError(false);
       })
-      .catch((error) => {
-        console.log(error);
-        setIsError(true);
-      });
+      .catch(() => setIsError(true));
     setIsLoading(false);
     setIsRefetching(false);
   };
@@ -108,115 +99,89 @@ const Payments: React.FC = () => {
     setPagination((prev) => ({ ...prev, pageIndex: 0 }));
   }, [columnFilters]);
 
-  const handleCreatePayment = async ({
+  const handleCreateHostelGroup = async ({
     values,
     table,
   }: {
-    values: Payment;
-    table: MRT_TableInstance<Payment>;
+    values: HostelGroup;
+    table: MRT_TableInstance<HostelGroup>;
   }) => {
     axiosInstance
-      .post(`pack/payment/`, {
-        subscription: values.subscription,
-        user: values.user,
-        phonepe_order_id: values.phonepe_order_id,
-        merchant_transaction_id: values.merchant_transaction_id,
-        payment_status: values.payment_status,
-        amount: values.amount,
+      .post(`hostel-groups/`, {
+        hostel_group_name: values.hostel_group_name,
+        max_orders: values.max_orders,
       })
-      .then((response) => {
-        getPayments();
+      .then(() => {
+        getHostelGroups();
       })
       .catch((error) => console.error(error));
 
     table.setCreatingRow(null);
   };
 
-  const handleEditPayment = async ({
+  const handleEditHostelGroup = async ({
     values,
     table,
   }: {
-    values: Payment;
-    table: MRT_TableInstance<Payment>;
+    values: HostelGroup;
+    table: MRT_TableInstance<HostelGroup>;
   }) => {
     axiosInstance
-      .patch(`pack/payment/${values.id}/`, {
-        subscription: values.subscription,
-        user: values.user,
-        phonepe_order_id: values.phonepe_order_id,
-        merchant_transaction_id: values.merchant_transaction_id,
-        payment_status: values.payment_status,
-        amount: values.amount,
+      .patch(`hostel-groups/${values.id}/`, {
+        hostel_group_name: values.hostel_group_name,
+        max_orders: values.max_orders,
       })
-      .then((response) => {
-        getPayments();
+      .then(() => {
+        getHostelGroups();
       })
       .catch((error) => console.error(error));
     table.setEditingRow(null);
   };
 
-  const columns = useMemo<MRT_ColumnDef<Payment>[]>(
+  const columns = useMemo<MRT_ColumnDef<HostelGroup>[]>(
     () => [
       {
         accessorKey: "id",
         header: "ID",
         enableEditing: false,
+        size: 100,
+      },
+      {
+        accessorKey: "hostel_group_name",
+        header: "Hostel Group Name",
+        size: 250,
+      },
+      {
+        accessorKey: "max_orders",
+        header: "Max Orders",
         size: 150,
       },
       {
-        accessorKey: "subscription",
-        header: "Subscription",
-        size: 150,
-      },
-      {
-        accessorKey: "user",
-        header: "User",
-        size: 150,
-      },
-      {
-        accessorKey: "phonepe_order_id",
-        header: "Phonepe Order ID",
-        size: 200,
-      },
-      {
-        accessorKey: "merchant_transaction_id",
-        header: "Merchant Transaction ID",
-        size: 200,
-      },
-      {
-        accessorKey: "payment_status",
-        header: "Payment Status",
-        size: 200,
-      },
-      {
-        accessorKey: "amount",
-        header: "Amount",
-        size: 150,
-      },
-      {
-        accessorKey: "created_at",
+        accessorKey: "created_at", //normal accessorKey
         header: "Created At",
         enableEditing: false,
         size: 200,
+        Cell: ({ cell }) => (
+          <Box>{formatDate(cell.getValue() as string)}</Box>
+        ),
       },
     ],
     []
   );
 
-  //DELETE action
-  const openDeleteConfirmModal = (row: Payment) => {
-    if (window.confirm("Are you sure you want to delete this payment?")) {
+  const openDeleteConfirmModal = (row: HostelGroup) => {
+    if (window.confirm("Are you sure you want to delete this hostel group?")) {
       axiosInstance
-        .delete(`pack/payment/${row.id}/`)
-        .then((response) => {
-          getPayments();
+        .delete(`hostel-groups/${row.id}/`)
+        .then(() => {
+          getHostelGroups();
         })
         .catch((error) => console.error(error));
     }
   };
 
   const table = useMaterialReactTable({
-    data: payments,
+    data: hostelGroups,
     columns,
     manualFiltering: true,
     manualPagination: true,
@@ -245,13 +210,12 @@ const Payments: React.FC = () => {
     positionToolbarAlertBanner: "bottom",
 
     createDisplayMode: "modal",
-    onCreatingRowSave: handleCreatePayment,
+    onCreatingRowSave: handleCreateHostelGroup,
     enableEditing: true,
-    onEditingRowSave: handleEditPayment,
-    //optionally customize modal content
+    onEditingRowSave: handleEditHostelGroup,
     renderCreateRowDialogContent: ({ table, row, internalEditComponents }) => (
       <>
-        <DialogTitle variant="h3">Create New Payment</DialogTitle>
+        <DialogTitle variant="h3">Create New Hostel Group</DialogTitle>
         <DialogContent
           sx={{ display: "flex", flexDirection: "column", gap: "1rem" }}
         >
@@ -262,10 +226,9 @@ const Payments: React.FC = () => {
         </DialogActions>
       </>
     ),
-    //optionally customize modal content
     renderEditRowDialogContent: ({ table, row, internalEditComponents }) => (
       <>
-        <DialogTitle variant="h3">Edit Payment</DialogTitle>
+        <DialogTitle variant="h3">Edit Hostel Group</DialogTitle>
         <DialogContent
           sx={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}
         >
@@ -295,14 +258,16 @@ const Payments: React.FC = () => {
     ),
     renderTopToolbarCustomActions: ({ table }) => (
       <Button variant="contained" onClick={() => table.setCreatingRow(true)}>
-        Create New Payment
+        Create New Hostel Group
       </Button>
     ),
   });
 
   return (
-    <div>{payments.length >= 0 && <MaterialReactTable table={table} />}</div>
-);
+    <div>
+      {hostelGroups.length >= 0 && <MaterialReactTable table={table} />}
+    </div>
+  );
 };
 
-export default Payments;
+export default ManageHostelGroups;

@@ -296,7 +296,7 @@ const ManageHostels: React.FC = () => {
 
   return (
     <div>
-      {hostels.length && <MaterialReactTable table={table} />}
+      {hostels.length>=0 && <MaterialReactTable table={table} />}
     </div>
   );
 };

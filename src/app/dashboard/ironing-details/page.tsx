@@ -313,7 +313,7 @@ const ManageIroningDetails: React.FC = () => {
     ),
   });
 
-  return <div>{ironingDetails && <MaterialReactTable table={table} />}</div>;
+  return <div>{ironingDetails.length>=0 && <MaterialReactTable table={table} />}</div>;
 };
 
 export default ManageIroningDetails;

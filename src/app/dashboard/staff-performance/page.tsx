@@ -238,7 +238,7 @@ const StaffPerformance = () => {
       )}
 
       {/* Ironing Section */}
-      {ironingStaff.length > 0 && (
+      {ironingStaff.length >= 0 && (
         <div>
           <h2 className="text-xl font-semibold mb-2">Ironing Staff</h2>
           <Bar data={generateChartData(ironingStaff, "Ironed")} />

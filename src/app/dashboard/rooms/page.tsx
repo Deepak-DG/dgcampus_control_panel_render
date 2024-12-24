@@ -295,7 +295,7 @@ const ManageRooms: React.FC = () => {
 
   return (
     <div>
-      {rooms.length > 0 && hostels.length > 0 && (
+      {rooms.length >= 0 && hostels.length >= 0 && (
         <MaterialReactTable table={table} />
       )}
     </div>

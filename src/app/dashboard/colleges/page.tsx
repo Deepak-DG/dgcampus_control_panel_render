@@ -262,7 +262,7 @@ const Colleges: React.FC = () => {
 
   return (
     <div>
-      {colleges.length && <MaterialReactTable table={table} />}
+      {colleges.length>=0 && <MaterialReactTable table={table} />}
     </div>
   );
 };

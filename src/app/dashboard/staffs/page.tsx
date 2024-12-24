@@ -427,7 +427,7 @@ const Staff: React.FC = () => {
 
   return (
     <div>
-      {staff && <MaterialReactTable table={table} />}
+      {staff.length>=0 && <MaterialReactTable table={table} />}
       <EditRolesDialog
         open={dialogOpen}
         onClose={handleDialogClose}

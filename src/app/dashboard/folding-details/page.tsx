@@ -312,7 +312,7 @@ const ManageFoldingDetails: React.FC = () => {
     ),
   });
 
-  return <div>{foldingDetails && <MaterialReactTable table={table} />}</div>;
+  return <div>{foldingDetails.length>=0 && <MaterialReactTable table={table} />}</div>;
 };
 
 export default ManageFoldingDetails;

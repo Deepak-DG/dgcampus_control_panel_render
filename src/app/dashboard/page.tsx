@@ -45,7 +45,10 @@ const Dashboard = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+
   useEffect(() => {
+
+    console.log(localStorage.getItem("access_token"));
     const fetchSummary = async () => {
       try {
         const response = await axiosInstance.get("admin/summary/");

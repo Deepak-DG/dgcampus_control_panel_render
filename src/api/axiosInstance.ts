@@ -1,7 +1,7 @@
 import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosError } from 'axios';
 
 const axiosInstance: AxiosInstance = axios.create({
-  baseURL: 'https://web-production-8423.up.railway.app/api/',
+  baseURL: 'https://web-production-ee04.up.railway.app/api/',
   // baseURL: 'http://127.0.0.1:8000/api/',
   timeout: 5000,
   headers: {

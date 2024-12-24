@@ -30,6 +30,7 @@ export type WashingDetail = {
   box_id: string;
   checkup_report: string;
   washing_status: string;
+  production_line: string;
   created_at: string;
 };
 
@@ -95,6 +96,7 @@ const ManageWashingDetails: React.FC = () => {
         setWashingDetails(response.data.results);
         setRowCount(response.data.count);
         setIsError(false);
+        console.log(response.data);
       })
       .catch((error) => {
         setIsError(true);
@@ -120,6 +122,7 @@ const ManageWashingDetails: React.FC = () => {
         staff: values.staff,
         checkup_report: values.checkup_report,
         washing_status: values.washing_status,
+        production_line: values.production_line,
       })
       .then((response) => {
         getWashingDetails();
@@ -141,6 +144,7 @@ const ManageWashingDetails: React.FC = () => {
         staff: values.staff,
         checkup_report: values.checkup_report,
         washing_status: values.washing_status,
+        production_line: values.production_line,
       })
       .then((response) => {
         getWashingDetails();
@@ -190,6 +194,11 @@ const ManageWashingDetails: React.FC = () => {
       {
         accessorKey: "washing_status",
         header: "Washing Status",
+        size: 150,
+      },
+      {
+        accessorKey: "production_line",
+        header: "Production Line",
         size: 150,
       },
       {

@@ -31,6 +31,7 @@ export type FoldingDetail = {
   number_of_clothes_folded: number;
   checkup_report: string;
   folding_status: string;
+  folding_line: string;
   created_at: string;
 };
 
@@ -122,6 +123,7 @@ const ManageFoldingDetails: React.FC = () => {
         number_of_clothes_folded: values.number_of_clothes_folded,
         checkup_report: values.checkup_report,
         folding_status: values.folding_status,
+        folding_line: values.folding_line,
       })
       .then((response) => {
         getFoldingDetails();
@@ -144,6 +146,7 @@ const ManageFoldingDetails: React.FC = () => {
         number_of_clothes_folded: values.number_of_clothes_folded,
         checkup_report: values.checkup_report,
         folding_status: values.folding_status,
+        folding_line: values.folding_line,
       })
       .then((response) => {
         getFoldingDetails();
@@ -190,6 +193,11 @@ const ManageFoldingDetails: React.FC = () => {
       {
         accessorKey: "folding_status",
         header: "Folding Status",
+        size: 150,
+      },
+      {
+        accessorKey: "folding_line",
+        header: "Folding Line",
         size: 150,
       },
       {

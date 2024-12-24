@@ -6,7 +6,6 @@ import {
   MaterialReactTable,
   useMaterialReactTable,
   type MRT_ColumnDef,
-  type MRT_Row,
   type MRT_TableInstance,
 } from "material-react-table";
 import {
@@ -17,29 +16,21 @@ import {
   DialogTitle,
   IconButton,
   Tooltip,
-  MenuItem,
-  Select,
-  InputLabel,
-  FormControl,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import axiosInstance from "@/api/axiosInstance";
 import { formatDate } from "@/app/lib/DateUtils/dateUtils";
 
-export type ExceptionalLimitDay = {
+export type DefaultHostelGroup = {
   id: number;
-  groups: number[]; // Array of group IDs
   date: string;
-  max_orders: number;
-  reason: string;
+  group: string;
+  created_at: string;
 };
 
-const ManageExceptionalLimitDays: React.FC = () => {
-  const [exceptionalLimitDays, setExceptionalLimitDays] = useState<
-    ExceptionalLimitDay[]
-  >([]);
-  const [groups, setGroups] = useState<{ id: number; name: string }[]>([]); // Available groups
+const ManageDefaultHostelGroups: React.FC = () => {
+  const [groups, setGroups] = useState<DefaultHostelGroup[]>([]);
   const [isError, setIsError] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isRefetching, setIsRefetching] = useState<boolean>(false);
@@ -53,23 +44,8 @@ const ManageExceptionalLimitDays: React.FC = () => {
   });
 
   useEffect(() => {
-    getExceptionalLimitDays();
-    getGroups(); // Fetch available groups for selection
+    getGroups();
   }, [columnFilters, pagination.pageIndex, pagination.pageSize, sorting]);
-
-  const getGroups = async () => {
-    try {
-      const response = await axiosInstance.get("hostel-groups/");
-      setGroups(
-        response.data.results.map((group: any) => ({
-          id: group.id,
-          name: group.hostel_group_name,
-        }))
-      );
-    } catch (error) {
-      console.error("Error fetching groups:", error);
-    }
-  };
 
   const buildFiltersString = (filters: any[]) => {
     const params = new URLSearchParams();
@@ -85,8 +61,8 @@ const ManageExceptionalLimitDays: React.FC = () => {
     return desc ? `-${id}` : id;
   };
 
-  const getExceptionalLimitDays = async () => {
-    if (!exceptionalLimitDays.length) {
+  const getGroups = async () => {
+    if (!groups.length) {
       setIsLoading(true);
     } else {
       setIsRefetching(true);
@@ -108,138 +84,77 @@ const ManageExceptionalLimitDays: React.FC = () => {
     const query = queryParams.toString();
 
     await axiosInstance
-      .get(`exceptional-limit-days?${query}`)
+      .get(`default-hostel-groups?${query}`)
       .then((response) => {
-        setExceptionalLimitDays(response.data.results);
-        console.log(response);
+        setGroups(response.data.results);
         setRowCount(response.data.count);
         setIsError(false);
       })
-      .catch(() => setIsError(true));
+      .catch((error) => setIsError(true));
     setIsLoading(false);
     setIsRefetching(false);
   };
 
-  const handleCreateExceptionalLimitDay = async ({
+  useEffect(() => {
+    setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+  }, [columnFilters]);
+
+  const handleCreateGroup = async ({
     values,
     table,
   }: {
-    values: ExceptionalLimitDay;
-    table: MRT_TableInstance<ExceptionalLimitDay>;
+    values: DefaultHostelGroup;
+    table: MRT_TableInstance<DefaultHostelGroup>;
   }) => {
-    // Ensure `groups` is an array
-    const payload = {
-      ...values,
-      groups: Array.isArray(values.groups) ? values.groups : [], // Ensure groups is an array
-    };
-
-    try {
-      await axiosInstance.post(`exceptional-limit-days/`, payload);
-      getExceptionalLimitDays(); // Refresh the table after creation
-      console.log("Created new record:", payload);
-    } catch (error: any) {
-      console.error("Error creating record:", error.response?.data || error);
-    }
+    axiosInstance
+      .post(`default-hostel-groups/`, {
+        date: values.date,
+        group: values.group,
+      })
+      .then(() => {
+        getGroups();
+      })
+      .catch((error) => console.error(error));
 
     table.setCreatingRow(null);
   };
 
-  const handleEditExceptionalLimitDay = async ({
+  const handleEditGroup = async ({
     values,
     table,
   }: {
-    values: ExceptionalLimitDay;
-    table: MRT_TableInstance<ExceptionalLimitDay>;
+    values: DefaultHostelGroup;
+    table: MRT_TableInstance<DefaultHostelGroup>;
   }) => {
-    console.log(values);
     axiosInstance
-      .patch(`exceptional-limit-days/${values.id}/`, values)
+      .patch(`default-hostel-groups/${values.id}/`, {
+        date: values.date,
+        group: values.group,
+      })
       .then(() => {
-        getExceptionalLimitDays();
+        getGroups();
       })
       .catch((error) => console.error(error));
     table.setEditingRow(null);
   };
 
-  const columns = useMemo<MRT_ColumnDef<ExceptionalLimitDay>[]>(
+  const columns = useMemo<MRT_ColumnDef<DefaultHostelGroup>[]>(
     () => [
       {
         accessorKey: "id",
         header: "ID",
         enableEditing: false,
-        size: 100,
-      },
-      {
-        accessorKey: "groups",
-        header: "Groups",
-        size: 300,
-        enableEditing: true,
-        Cell: ({ cell }) => {
-          const groupIds = cell.getValue<number[]>() || [];
-          return groupIds
-            .map((id) => groups.find((g) => g.id === id)?.name || "Unknown")
-            .join(", ");
-        },
-
-        Edit: ({ cell, column, table }) => {
-          const currentValues = cell.getValue<number[]>() || []; // Get the current group IDs
-
-          return (
-            <FormControl fullWidth>
-              <InputLabel>Groups</InputLabel>
-              <Select
-                multiple
-                value={currentValues}
-                onChange={(e) => {
-                  const updatedValue = e.target.value as number[]; // Updated selected group IDs
-                  const editingRow =
-                    table.getState().creatingRow || table.getState().editingRow; // Check creating or editing row state
-
-                  if (editingRow) {
-                    table.setEditingRow({
-                      ...editingRow,
-                      _valuesCache: {
-                        ...editingRow._valuesCache,
-                        [column.id]: updatedValue, // Update the `groups` field
-                      },
-                    });
-                  }
-                }}
-                renderValue={(selected) =>
-                  (selected as number[])
-                    .map(
-                      (id) => groups.find((g) => g.id === id)?.name || "Unknown"
-                    )
-                    .join(", ")
-                }
-              >
-                {groups.map((group) => (
-                  <MenuItem key={group.id} value={group.id}>
-                    {group.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          );
-        },
+        size: 150,
       },
       {
         accessorKey: "date",
         header: "Date",
         size: 150,
-        Cell: ({ cell }) => (
-          <Box>{formatDate(cell.getValue() as string, false)}</Box>
-        ),
       },
       {
-        accessorKey: "max_orders",
-        header: "Max Orders",
+        accessorKey: "group",
+        header: "Group",
         size: 150,
-      },
-      {
-        accessorKey: "reason",
-        header: "Reason",
-        size: 250,
       },
       {
         accessorKey: "created_at",
@@ -249,22 +164,22 @@ const ManageExceptionalLimitDays: React.FC = () => {
         Cell: ({ cell }) => <Box>{formatDate(cell.getValue() as string)}</Box>,
       },
     ],
-    [groups]
+    []
   );
 
-  const openDeleteConfirmModal = (row: ExceptionalLimitDay) => {
-    if (window.confirm("Are you sure you want to delete this record?")) {
+  const openDeleteConfirmModal = (row: DefaultHostelGroup) => {
+    if (window.confirm("Are you sure you want to delete this group?")) {
       axiosInstance
-        .delete(`exceptional-limit-days/${row.id}/`)
+        .delete(`default-hostel-groups/${row.id}/`)
         .then(() => {
-          getExceptionalLimitDays();
+          getGroups();
         })
         .catch((error) => console.error(error));
     }
   };
 
   const table = useMaterialReactTable({
-    data: exceptionalLimitDays,
+    data: groups,
     columns,
     manualFiltering: true,
     manualPagination: true,
@@ -291,14 +206,13 @@ const ManageExceptionalLimitDays: React.FC = () => {
     columnFilterDisplayMode: "popover",
     paginationDisplayMode: "pages",
     positionToolbarAlertBanner: "bottom",
-
     createDisplayMode: "modal",
-    onCreatingRowSave: handleCreateExceptionalLimitDay,
+    onCreatingRowSave: handleCreateGroup,
     enableEditing: true,
-    onEditingRowSave: handleEditExceptionalLimitDay,
+    onEditingRowSave: handleEditGroup,
     renderCreateRowDialogContent: ({ table, row, internalEditComponents }) => (
       <>
-        <DialogTitle variant="h3">Create New Exceptional Limit Day</DialogTitle>
+        <DialogTitle variant="h3">Create New Group</DialogTitle>
         <DialogContent
           sx={{ display: "flex", flexDirection: "column", gap: "1rem" }}
         >
@@ -311,7 +225,7 @@ const ManageExceptionalLimitDays: React.FC = () => {
     ),
     renderEditRowDialogContent: ({ table, row, internalEditComponents }) => (
       <>
-        <DialogTitle variant="h3">Edit Exceptional Limit Day</DialogTitle>
+        <DialogTitle variant="h3">Edit Group</DialogTitle>
         <DialogContent
           sx={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}
         >
@@ -341,16 +255,16 @@ const ManageExceptionalLimitDays: React.FC = () => {
     ),
     renderTopToolbarCustomActions: ({ table }) => (
       <Button variant="contained" onClick={() => table.setCreatingRow(true)}>
-        Create New Exceptional Limit Day
+        Create New Group
       </Button>
     ),
   });
 
   return (
     <div>
-      {exceptionalLimitDays.length >= 0 && <MaterialReactTable table={table} />}
+      {groups.length >= 0 && <MaterialReactTable table={table} />}
     </div>
   );
 };
 
-export default ManageExceptionalLimitDays;
+export default ManageDefaultHostelGroups;

@@ -401,7 +401,7 @@ const Students: React.FC = () => {
 
   return (
     <div>
-      {students.length >= 0 && hostels.length >= 0 && <MaterialReactTable table={table} />}
+      {students && hostels.length > 0 && <MaterialReactTable table={table} />}
     </div>
   );
 };

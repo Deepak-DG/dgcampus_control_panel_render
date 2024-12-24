@@ -31,6 +31,7 @@ export type IroningDetail = {
   number_of_clothes_ironed: number;
   checkup_report: string;
   ironing_status: string;
+  ironing_station: string;
   created_at: string;
 };
 
@@ -122,6 +123,7 @@ const ManageIroningDetails: React.FC = () => {
         number_of_clothes_ironed: values.number_of_clothes_ironed,
         checkup_report: values.checkup_report,
         ironing_status: values.ironing_status,
+        ironing_station: values.ironing_station,
       })
       .then((response) => {
         getIroningDetails();
@@ -144,6 +146,7 @@ const ManageIroningDetails: React.FC = () => {
         number_of_clothes_ironed: values.number_of_clothes_ironed,
         checkup_report: values.checkup_report,
         ironing_status: values.ironing_status,
+        ironing_station: values.ironing_station,
       })
       .then((response) => {
         getIroningDetails();
@@ -191,6 +194,11 @@ const ManageIroningDetails: React.FC = () => {
       {
         accessorKey: "ironing_status",
         header: "Ironing Status",
+        size: 150,
+      },
+      {
+        accessorKey: "ironing_station",
+        header: "Ironing Station",
         size: 150,
       },
       {

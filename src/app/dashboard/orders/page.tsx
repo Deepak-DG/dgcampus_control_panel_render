@@ -126,6 +126,7 @@ const ManageOrders: React.FC = () => {
     axiosInstance
       .post(`orders/`, {
         slot: values.slot,
+        pickup_date: values.pickup_date,
         room: values.room,
         student: values.student,
         pickup_staff: values.pickup_staff,
@@ -161,6 +162,7 @@ const ManageOrders: React.FC = () => {
     axiosInstance
       .patch(`orders/${values.id}/`, {
         slot: values.slot,
+        pickup_date: values.pickup_date,
         room: values.room,
         student: values.student,
         pickup_staff: values.pickup_staff,
@@ -218,7 +220,7 @@ const ManageOrders: React.FC = () => {
       {
         accessorKey: "pickup_date",
         header: "Pickup Date",
-        enableEditing: false,
+        // enableEditing: false,
         size: 150,
       },
       {

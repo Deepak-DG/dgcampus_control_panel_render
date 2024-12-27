@@ -5,7 +5,7 @@ import Link from "next/link";
 
 const NavBar = () => {
   return (
-    <nav className="sticky top-0 bg-gray-900 text-white p-4 z-10">
+    <nav className="sticky top-0 bg-violet-400 dark:bg-gray-900 text-white p-4 z-10">
       <div className="container mx-auto flex items-center justify-between">
         <div className="flex items-center">
           <Image

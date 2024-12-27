@@ -2,6 +2,8 @@
 
 import axiosInstance from '@/api/axiosInstance';
 import React, { useState, useEffect } from 'react';
+import Snackbar from "@mui/material/Snackbar";
+import Alert from "@mui/material/Alert";
 
 interface Holiday {
   id: number;
@@ -21,8 +23,12 @@ interface ExceptionalDay {
 
 interface CalendarDay {
   date: string;
-  type: 'holiday' | 'exceptional' | 'serving_group';
-  details: Holiday | ExceptionalDay | { group_name: string }[] | null;
+  type: "holiday" | "exceptional" | "serving_group";
+  details:
+    | Holiday
+    | ExceptionalDay
+    | { group_name: string; max_orders: number }[]
+    | null;
 }
 
 interface HostelGroup {
@@ -35,11 +41,12 @@ const AdminCalendarPage: React.FC = () => {
   const [year, setYear] = useState<number>(new Date().getFullYear());
   const [month, setMonth] = useState<number>(new Date().getMonth() + 1);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [type, setType] = useState<'holiday' | 'exceptional'>('holiday');
-  const [reason, setReason] = useState<string>('');
+  const [type, setType] = useState<"holiday" | "exceptional">("holiday");
+  const [reason, setReason] = useState<string>("");
   const [maxOrders, setMaxOrders] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [groups, setGroups] = useState<HostelGroup[]>([]);
   const [selectedGroups, setSelectedGroups] = useState<number[]>([]);
   const [editMode, setEditMode] = useState<boolean>(false);
@@ -49,12 +56,13 @@ const AdminCalendarPage: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await axiosInstance.get('admin-calendar/calendar', {
+      const response = await axiosInstance.get("admin-calendar/calendar", {
         params: { year, month },
       });
       setCalendar(response.data);
+      console.log(response.data);
     } catch (err) {
-      setError('Failed to fetch calendar data.');
+      setError("Failed to fetch calendar data.");
       console.error(err);
     } finally {
       setLoading(false);
@@ -63,10 +71,10 @@ const AdminCalendarPage: React.FC = () => {
 
   const fetchGroups = async () => {
     try {
-      const response = await axiosInstance.get('hostel-groups/');
+      const response = await axiosInstance.get("hostel-groups/");
       setGroups(response.data.results || []);
     } catch (err) {
-      setError('Failed to fetch hostel groups.');
+      setError("Failed to fetch hostel groups.");
       console.error(err);
     }
   };
@@ -76,74 +84,99 @@ const AdminCalendarPage: React.FC = () => {
       setError(null);
 
       if (!selectedDate) {
-        setError('Please select a date.');
+        setError("Please select a date.");
         return;
       }
 
-      if (type === 'holiday') {
-        if (editMode) {
-          await axiosInstance.put(`admin-calendar/update_holiday/${editId}/`, {
-            date: selectedDate,
-            reason,
-          });
-        } else {
-          await axiosInstance.post('admin-calendar/add_holiday/', {
-            date: selectedDate,
-            reason,
-          });
-        }
-      } else {
-        if (selectedGroups.length === 0) {
-          setError('Please select at least one group for an exceptional day.');
-          return;
-        }
+      const payload =
+        type === "holiday"
+          ? { date: selectedDate, reason }
+          : {
+              date: selectedDate,
+              reason,
+              max_orders: maxOrders,
+              groups: selectedGroups,
+            };
 
-        const payload = {
-          date: selectedDate,
-          reason,
-          max_orders: maxOrders,
-          groups: selectedGroups,
-        };
-
+      if (type === "holiday") {
         if (editMode) {
           await axiosInstance.put(
-            `admin-calendar/update_exceptional_day/${editId}/`,
+            `admin-calendar/${editId}/update_holiday/`,
             payload
           );
         } else {
-          await axiosInstance.post('admin-calendar/add_exceptional_day/', payload);
+          await axiosInstance.post("admin-calendar/add_holiday/", payload);
+        }
+      } else {
+        if (selectedGroups.length === 0) {
+          setError("Please select at least one group for an exceptional day.");
+          return;
+        }
+
+        if (editMode) {
+          await axiosInstance.put(
+            `admin-calendar/${editId}/update_exceptional_day/`,
+            payload
+          );
+        } else {
+          await axiosInstance.post(
+            "admin-calendar/add_exceptional_day/",
+            payload
+          );
         }
       }
 
       resetModal();
       fetchCalendar();
-    } catch (err) {
-      setError('Failed to add or update event. Please try again.');
-      console.error(err);
+    } catch (err: any) {
+      if (err.response) {
+        const serverMessage =
+      err.response.data.error ||
+      'Failed to add or update the event. Please check your input.';
+     setError(serverMessage);
+     setSnackbarOpen(true); 
+      } else if (err.request) {
+        // No response received
+        console.error("Error request:", err.request);
+        setError("Network error. Please check your internet connection.");
+        setSnackbarOpen(true); 
+      } else {
+        // Other errors
+        console.error("Error message:", err.message);
+        setError("An unexpected error occurred. Please try again.");
+        setSnackbarOpen(true); 
+      }
     }
   };
+  
+  const handleCloseSnackbar = () => {
+    setSnackbarOpen(false);
+    setError(null); // Clear the error when the snackbar closes
+  };
 
-  const handleDeleteEvent = async (id: number, eventType: 'holiday' | 'exceptional') => {
+  const handleDeleteEvent = async (
+    id: number,
+    eventType: "holiday" | "exceptional"
+  ) => {
     try {
       setError(null);
       const endpoint =
         eventType === "holiday"
-          ? `admin-calendar/delete_holiday/${id}/`
-          : `admin-calendar/delete_exceptional_day/${id}/`;
+          ? `admin-calendar/${id}/delete_holiday/`
+          : `admin-calendar/${id}/delete_exceptional_day/`;
 
-          console.log(endpoint);
       await axiosInstance.delete(endpoint);
       fetchCalendar();
     } catch (err) {
-      setError('Failed to delete the event. Please try again.');
+      setError("Failed to delete the event. Please try again.");
       console.error(err);
     }
   };
 
   const resetModal = () => {
     setSelectedDate(null);
-    setType('holiday');
-    setReason('');
+    setType("holiday");
+    setReason("");
     setMaxOrders(0);
     setSelectedGroups([]);
     setEditMode(false);
@@ -156,7 +189,7 @@ const AdminCalendarPage: React.FC = () => {
   }, [year, month]);
 
   return (
-    <div className="p-6">
+    <div className="p-6 bg-white dark:bg-gray-900">
       <h1 className="text-2xl font-bold mb-4">Admin Calendar</h1>
 
       {/* Year and Month Selectors */}
@@ -204,30 +237,34 @@ const AdminCalendarPage: React.FC = () => {
               key={day.date}
               className={`border rounded p-4 cursor-pointer ${
                 day.type === "holiday"
-                  ? "bg-red-100"
+                  ? "bg-red-200 dark:bg-red-500"
                   : day.type === "exceptional"
-                  ? "bg-yellow-100"
-                  : "bg-green-100"
+                  ? "bg-yellow-200 dark:bg-yellow-500"
+                  : "bg-green-200 dark:bg-green-500"
               }`}
               onClick={() => {
-                // Ensure only `holiday` or `exceptional` types are handled
                 if (day.type === "holiday") {
                   setSelectedDate(day.date);
                   setType("holiday");
-                  setReason((day.details as Holiday).reason || "");
+                  setReason((day.details as Holiday)?.reason || "");
                   setEditMode(true);
                   setEditId((day.details as Holiday).id);
                 } else if (day.type === "exceptional") {
                   setSelectedDate(day.date);
                   setType("exceptional");
                   const exceptional = day.details as ExceptionalDay;
-                  setReason(exceptional.reason || "");
-                  setMaxOrders(exceptional.max_orders || 0);
+                  setReason(exceptional?.reason || "");
+                  setMaxOrders(exceptional?.max_orders || 0);
                   setSelectedGroups(
                     exceptional.groups.map((group) => group.id)
                   );
                   setEditMode(true);
-                  setEditId(exceptional.id);
+                  setEditId(exceptional?.id);
+                } else if (day.type === "serving_group") {
+                  setSelectedDate(day.date); // Allow user to add a new event
+                  setType("holiday"); // Default to adding a holiday
+                  setReason(""); // Clear any pre-filled data
+                  setEditMode(false); // Ensure it's a new event
                 }
               }}
             >
@@ -252,14 +289,19 @@ const AdminCalendarPage: React.FC = () => {
                     {(day.details as ExceptionalDay)?.max_orders}
                   </>
                 )}
-                {day.type === "serving_group" && day.details && (
-                  <>
-                    <span>Serving Group:</span>{" "}
-                    {(day.details as { group_name: string }[])
-                      .map((group) => group.group_name)
-                      .join(", ")}
-                  </>
-                )}
+                {day.type === "serving_group" &&
+                  day.details &&
+                  Array.isArray(day.details) && (
+                    <>
+                      <span>Serving Group:</span>{" "}
+                      {day.details.map((group) => (
+                        <div key={group.group_name}>
+                          <span>{group.group_name}</span> - Max Orders:{" "}
+                          {group.max_orders}
+                        </div>
+                      ))}
+                    </>
+                  )}
                 {day.type === "serving_group" && !day.details && (
                   <span>No serving groups available</span>
                 )}
@@ -360,6 +402,21 @@ const AdminCalendarPage: React.FC = () => {
           </div>
         </div>
       )}
+      {/* Snackbar for Error Display */}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={6000} // Automatically close after 6 seconds
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity="error" // Severity can be "success", "info", "warning", "error"
+          sx={{ width: "100%" }}
+        >
+          {error}
+        </Alert>
+      </Snackbar>
     </div>
   );
 };
